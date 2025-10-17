@@ -60,6 +60,10 @@
                         <span class="user-role">Administrador</span>
                     </div>
                 </div>
+                <button class="btn-logout" onclick="logout()" title="Cerrar Sesión">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
             </div>
         </aside>
 
@@ -88,6 +92,10 @@
 
                         <button class="btn-icon" title="Configuración">
                             <i class="fas fa-cog"></i>
+                        </button>
+
+                        <button class="btn-icon" title="Cerrar Sesión" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
                         </button>
 
                         <button class="btn-primary" id="newAppointmentBtn">
@@ -606,6 +614,7 @@
     </div>
 
     <script src="config.js"></script>
+    <script src="auth.js"></script>
     <script src="demo-data.js"></script>
     <script src="script.js"></script>
 </body>

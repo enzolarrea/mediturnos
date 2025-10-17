@@ -863,6 +863,21 @@ window.addEventListener('unhandledrejection', function(e) {
     }
 });
 
+// Función logout global para el botón del sidebar
+window.logout = function() {
+    console.log('Función logout llamada');
+    
+    if (window.authManager) {
+        console.log('AuthManager disponible, cerrando sesión...');
+        window.authManager.logout();
+    } else {
+        console.log('AuthManager no disponible, limpiando localStorage manualmente...');
+        // Fallback: limpiar localStorage y redirigir
+        localStorage.removeItem('mediturnos_user');
+        window.location.href = 'landing.html';
+    }
+};
+
 // Agregar estilos CSS para animaciones de notificaciones
 const style = document.createElement('style');
 style.textContent = `

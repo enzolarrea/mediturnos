@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediTurnos - Gestión Profesional de Turnos Médicos</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos específicos para la landing page */
+        .landing-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+        }
+
+        .landing-header {
+            background: var(--bg-primary);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .landing-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-lg) var(--spacing-xl);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .landing-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .landing-logo i {
+            font-size: var(--font-size-2xl);
+            color: var(--medical-blue);
+        }
+
+        .landing-logo h1 {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .landing-nav-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        .landing-nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color var(--transition-fast);
+        }
+
+        .landing-nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .hero-section {
+            padding: var(--spacing-2xl) var(--spacing-xl);
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-lg);
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: var(--font-size-xl);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xl);
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: var(--spacing-lg);
+            justify-content: center;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .hero-image {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: var(--spacing-xl);
+        }
+
+        .hero-dashboard-preview {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .preview-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .preview-logo i {
+            color: var(--medical-blue);
+        }
+
+        .preview-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-md);
+        }
+
+        .preview-stat {
+            background: var(--bg-tertiary);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .preview-stat-number {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--primary-color);
+            display: block;
+        }
+
+        .preview-stat-label {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .features-section {
+            padding: var(--spacing-2xl) var(--spacing-xl);
+            background: var(--bg-primary);
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: var(--font-size-lg);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-2xl);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-2xl);
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: all var(--transition-fast);
+        }
+
+        .feature-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--medical-blue), var(--primary-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+            font-size: var(--font-size-2xl);
+            color: white;
+        }
+
+        .feature-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .cta-section {
+            padding: var(--spacing-2xl) var(--spacing-xl);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .cta-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cta-title {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .cta-description {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--spacing-xl);
+            opacity: 0.9;
+        }
+
+        .cta-actions {
+            display: flex;
+            gap: var(--spacing-lg);
+            justify-content: center;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--primary-color);
+            border: none;
+            padding: var(--spacing-md) var(--spacing-xl);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            text-decoration: none;
+        }
+
+        .btn-white:hover {
+            background: var(--bg-tertiary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline-white {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: var(--spacing-md) var(--spacing-xl);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            text-decoration: none;
+        }
+
+        .btn-outline-white:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            background: var(--bg-dark);
+            color: var(--text-white);
+            padding: var(--spacing-2xl) var(--spacing-xl);
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-xl);
+        }
+
+        .footer-section h3 {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--spacing-lg);
+            color: white;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: var(--text-muted);
+            text-decoration: none;
+            line-height: 1.6;
+            transition: color var(--transition-fast);
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: var(--spacing-xl);
+            padding-top: var(--spacing-lg);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Modal de login */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .login-modal.active {
+            display: flex;
+        }
+
+        .login-content {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 90%;
+            max-width: 400px;
+            padding: var(--spacing-xl);
+            position: relative;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .login-header h2 {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .login-close {
+            position: absolute;
+            top: var(--spacing-lg);
+            right: var(--spacing-lg);
+            background: none;
+            border: none;
+            font-size: var(--font-size-xl);
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius);
+            transition: all var(--transition-fast);
+        }
+
+        .login-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .form-group label {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-group input {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--bg-primary);
+            font-size: var(--font-size-sm);
+            transition: all var(--transition-fast);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .login-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .login-link {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        .login-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .cta-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .landing-nav {
+                padding: var(--spacing-md);
+            }
+
+            .landing-nav-actions {
+                gap: var(--spacing-md);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: var(--font-size-lg);
+            }
+
+            .section-title {
+                font-size: var(--font-size-2xl);
+            }
+
+            .landing-nav {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                text-align: center;
+            }
+
+            .landing-nav-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header de navegación -->
+    <header class="landing-header">
+        <nav class="landing-nav">
+            <a href="#" class="landing-logo">
+                <i class="fas fa-stethoscope"></i>
+                <h1>MediTurnos</h1>
+            </a>
+            <div class="landing-nav-actions">
+                <a href="#features" class="landing-nav-link">Características</a>
+                <a href="#about" class="landing-nav-link">Acerca de</a>
+                <a href="#contact" class="landing-nav-link">Contacto</a>
+                <button class="btn-secondary" onclick="openLoginModal()">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Iniciar Sesión
+                </button>
+                <button class="btn-primary" onclick="openRegisterModal()">
+                    <i class="fas fa-user-plus"></i>
+                    Registrarse
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Sección Hero -->
+    <main class="landing-page">
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Gestión Profesional de Turnos Médicos</h1>
+                <p class="hero-subtitle">
+                    Simplifica la administración de tu consultorio médico con nuestra plataforma integral. 
+                    Gestiona turnos, pacientes y médicos de manera eficiente y profesional.
+                </p>
+                <div class="hero-actions">
+                    <button class="btn-primary" onclick="openRegisterModal()">
+                        <i class="fas fa-rocket"></i>
+                        Comenzar Gratis
+                    </button>
+                    <button class="btn-secondary" onclick="scrollToFeatures()">
+                        <i class="fas fa-info-circle"></i>
+                        Más Información
+                    </button>
+                </div>
+                <div class="hero-image">
+                    <div class="hero-dashboard-preview">
+                        <div class="preview-header">
+                            <div class="preview-logo">
+                                <i class="fas fa-stethoscope"></i>
+                                <span>MediTurnos</span>
+                            </div>
+                            <span>Dashboard</span>
+                        </div>
+                        <div class="preview-stats">
+                            <div class="preview-stat">
+                                <span class="preview-stat-number">24</span>
+                                <span class="preview-stat-label">Turnos Hoy</span>
+                            </div>
+                            <div class="preview-stat">
+                                <span class="preview-stat-number">156</span>
+                                <span class="preview-stat-label">Pacientes</span>
+                            </div>
+                            <div class="preview-stat">
+                                <span class="preview-stat-number">12</span>
+                                <span class="preview-stat-label">Médicos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de Características -->
+        <section class="features-section" id="features">
+            <div class="features-container">
+                <h2 class="section-title">¿Por qué elegir MediTurnos?</h2>
+                <p class="section-subtitle">
+                    Nuestra plataforma está diseñada específicamente para profesionales de la salud, 
+                    ofreciendo herramientas poderosas y fáciles de usar.
+                </p>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Gestión de Turnos</h3>
+                        <p class="feature-description">
+                            Programa, modifica y cancela turnos de manera intuitiva. 
+                            Sistema de notificaciones automáticas para pacientes y médicos.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="feature-title">Base de Pacientes</h3>
+                        <p class="feature-description">
+                            Mantén un registro completo de tus pacientes con historial médico, 
+                            contactos de emergencia y notas personalizadas.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h3 class="feature-title">Gestión de Médicos</h3>
+                        <p class="feature-description">
+                            Administra el equipo médico, especialidades, horarios de trabajo 
+                            y disponibilidad en tiempo real.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h3 class="feature-title">Reportes y Estadísticas</h3>
+                        <p class="feature-description">
+                            Genera reportes detallados sobre consultas, ingresos y 
+                            rendimiento del consultorio.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Acceso Móvil</h3>
+                        <p class="feature-description">
+                            Accede a tu sistema desde cualquier dispositivo. 
+                            Interfaz responsive optimizada para tablets y móviles.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Seguridad y Privacidad</h3>
+                        <p class="feature-description">
+                            Protección de datos médicos con encriptación avanzada 
+                            y cumplimiento de normativas de privacidad.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de Call to Action -->
+        <section class="cta-section">
+            <div class="cta-container">
+                <h2 class="cta-title">¿Listo para modernizar tu consultorio?</h2>
+                <p class="cta-description">
+                    Únete a cientos de profesionales de la salud que ya confían en MediTurnos 
+                    para gestionar sus consultorios de manera eficiente.
+                </p>
+                <div class="cta-actions">
+                    <button class="btn-white" onclick="openRegisterModal()">
+                        <i class="fas fa-user-plus"></i>
+                        Crear Cuenta Gratis
+                    </button>
+                    <button class="btn-outline-white" onclick="openLoginModal()">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Acceder al Sistema
+                    </button>
+                </div>
+                
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>MediTurnos</h3>
+                <p>
+                    La solución integral para la gestión de turnos médicos. 
+                    Diseñada por profesionales, para profesionales.
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>Producto</h3>
+                <p><a href="#features">Características</a></p>
+                <p><a href="#pricing">Precios</a></p>
+                <p><a href="#demo">Demo</a></p>
+                <p><a href="#api">API</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>Soporte</h3>
+                <p><a href="#help">Centro de Ayuda</a></p>
+                <p><a href="#contact">Contacto</a></p>
+                <p><a href="#docs">Documentación</a></p>
+                <p><a href="#status">Estado del Sistema</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <p><a href="#privacy">Política de Privacidad</a></p>
+                <p><a href="#terms">Términos de Servicio</a></p>
+                <p><a href="#cookies">Política de Cookies</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 MediTurnos. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Modal de Login -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-content">
+            <button class="login-close" onclick="closeLoginModal()">&times;</button>
+            <div class="login-header">
+                <h2>Iniciar Sesión</h2>
+                <p>Accede a tu cuenta de MediTurnos</p>
+            </div>
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="login-actions">
+                    <button type="submit" class="btn-primary" style="width: 100%;">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Iniciar Sesión
+                    </button>
+                    <div class="login-link">
+                        ¿No tienes cuenta? <a href="#" onclick="switchToRegister()">Regístrate aquí</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Registro -->
+    <div id="registerModal" class="login-modal">
+        <div class="login-content">
+            <button class="login-close" onclick="closeRegisterModal()">&times;</button>
+            <div class="login-header">
+                <h2>Crear Cuenta</h2>
+                <p>Únete a MediTurnos y comienza a gestionar tu consultorio</p>
+            </div>
+            <form class="login-form" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="regName">Nombre Completo</label>
+                    <input type="text" id="regName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Correo Electrónico</label>
+                    <input type="email" id="regEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Contraseña</label>
+                    <input type="password" id="regPassword" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="regConfirmPassword">Confirmar Contraseña</label>
+                    <input type="password" id="regConfirmPassword" name="confirmPassword" required>
+                </div>
+                <div class="login-actions">
+                    <button type="submit" class="btn-primary" style="width: 100%;">
+                        <i class="fas fa-user-plus"></i>
+                        Crear Cuenta
+                    </button>
+                    <div class="login-link">
+                        ¿Ya tienes cuenta? <a href="#" onclick="switchToLogin()">Inicia sesión aquí</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // Funciones para manejar la landing page
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openRegisterModal() {
+            document.getElementById('registerModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRegisterModal() {
+            document.getElementById('registerModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function switchToRegister() {
+            closeLoginModal();
+            openRegisterModal();
+        }
+
+        function switchToLogin() {
+            closeRegisterModal();
+            openLoginModal();
+        }
+
+        function scrollToFeatures() {
+            document.getElementById('features').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+
+        function clearSession() {
+            if (confirm('¿Estás seguro de que quieres limpiar la sesión actual?')) {
+                localStorage.removeItem('mediturnos_user');
+                alert('Sesión limpiada. La página se recargará.');
+                window.location.reload();
+            }
+        }
+
+        function testLogout() {
+            console.log('Probando función logout...');
+            if (window.authManager) {
+                console.log('AuthManager encontrado, ejecutando logout...');
+                window.authManager.logout();
+            } else {
+                console.log('AuthManager no encontrado, limpiando localStorage...');
+                localStorage.removeItem('mediturnos_user');
+                alert('Sesión limpiada manualmente');
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = event.target.email.value;
+            const password = event.target.password.value;
+            
+            if (!email || !password) {
+                alert('Por favor complete todos los campos');
+                return;
+            }
+
+            try {
+                const result = await window.authManager.login(email, password);
+                
+                if (result.success) {
+                    alert(`¡Bienvenido, ${result.user.name}!`);
+                    closeLoginModal();
+                    window.location.href = 'index.html';
+                } else {
+                    alert(result.error || 'Error al iniciar sesión');
+                }
+            } catch (error) {
+                alert('Error al iniciar sesión: ' + error.message);
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            const name = event.target.name.value;
+            const email = event.target.email.value;
+            const password = event.target.password.value;
+            const confirmPassword = event.target.confirmPassword.value;
+            
+            if (!name || !email || !password || !confirmPassword) {
+                alert('Por favor complete todos los campos');
+                return;
+            }
+
+            try {
+                const userData = {
+                    name: name,
+                    email: email,
+                    password: password,
+                    confirmPassword: confirmPassword,
+                    role: 'doctor' // Rol por defecto
+                };
+
+                const result = await window.authManager.register(userData);
+                
+                if (result.success) {
+                    alert(`¡Cuenta creada exitosamente, ${result.user.name}!`);
+                    closeRegisterModal();
+                    window.location.href = 'index.html';
+                } else {
+                    alert(result.error || 'Error al crear la cuenta');
+                }
+            } catch (error) {
+                alert('Error al crear la cuenta: ' + error.message);
+            }
+        }
+
+        // Cerrar modales al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            const loginModal = document.getElementById('loginModal');
+            const registerModal = document.getElementById('registerModal');
+            
+            if (event.target === loginModal) {
+                closeLoginModal();
+            }
+            if (event.target === registerModal) {
+                closeRegisterModal();
+            }
+        });
+
+        // Smooth scrolling para enlaces de navegación
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animación de entrada para las tarjetas de características
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Aplicar animación a las tarjetas de características
+        document.addEventListener('DOMContentLoaded', function() {
+            // En la landing page, no redirigir automáticamente
+            // Permitir que el usuario vea la página de inicio
+            console.log('Landing page cargada - usuario puede ver la página');
+
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+
+</html>

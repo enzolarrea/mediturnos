@@ -84,19 +84,25 @@ class AuthManager {
                 }
             ];
 
-            // Buscar usuario
-            const user = mockUsers.find(u => u.email === email && u.password === password);
+            // Buscar usuario entre los mockUsers y los usuarios almacenados
+            const storedUsers = this.getStoredUsers();
+            const allUsers = mockUsers.concat(storedUsers || []);
+
+            const user = allUsers.find(u => u.email === email && u.password === password);
             
             if (!user) {
                 throw new Error('Credenciales inválidas');
             }
 
             // Crear sesión de usuario (sin password)
+            // Normalizar nombre (algunos registros usan "nombre" + "apellido")
+            const resolvedName = user.name || `${user.nombre || ''} ${user.apellido || ''}`.trim() || user.email;
+
             const sessionUser = {
-                id: user.id,
-                name: user.name,
+                id: user.id || null,
+                name: resolvedName,
                 email: user.email,
-                role: user.role,
+                role: user.role || 'doctor',
                 clinic: user.clinic,
                 specialty: user.specialty,
                 avatar: user.avatar,
@@ -126,6 +132,12 @@ class AuthManager {
 
             if (userData.password !== userData.confirmPassword) {
                 throw new Error('Las contraseñas no coinciden');
+            }
+
+            // Validación de complejidad de contraseña: mínimo 8, máximo 32, al menos una mayúscula y un número
+            const pwdRegex = /^(?=.*[A-Z])(?=.*\d).{8,32}$/;
+            if (!pwdRegex.test(userData.password)) {
+                throw new Error('La contraseña debe tener entre 8 y 32 caracteres, incluir al menos una letra mayúscula y un número');
             }
 
             // Validar formato de email
@@ -204,8 +216,28 @@ class AuthManager {
     // Obtener usuarios almacenados
     getStoredUsers() {
         try {
-            const users = localStorage.getItem('mediturnos_users');
-            return users ? JSON.parse(users) : [];
+            // Leer desde la clave principal y desde la clave usada por el archivo legacy `register.js`
+            const usersA = localStorage.getItem('mediturnos_users');
+            const usersB = localStorage.getItem('users');
+
+            const parsedA = usersA ? JSON.parse(usersA) : [];
+            const parsedB = usersB ? JSON.parse(usersB) : [];
+
+            // Normalizar usuarios provenientes de `users` (pueden usar `nombre`/`apellido`)
+            const normalizedB = parsedB.map(u => ({
+                id: u.id || null,
+                name: u.name || `${u.nombre || ''} ${u.apellido || ''}`.trim() || u.email,
+                email: u.email,
+                password: u.password,
+                role: u.role || 'doctor',
+                clinic: u.clinic,
+                specialty: u.specialty,
+                avatar: u.avatar,
+                createdAt: u.createdAt,
+                lastLogin: u.lastLogin
+            }));
+
+            return parsedA.concat(normalizedB);
         } catch (error) {
             console.error('Error al obtener usuarios:', error);
             return [];

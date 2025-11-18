@@ -557,7 +557,7 @@
             <div class="hero-content">
                 <h1 class="hero-title">Gestión Profesional de Turnos Médicos</h1>
                 <p class="hero-subtitle">
-                    Simplifica la administración de tu consultorio médico con nuestra plataforma integral. 
+                    Simplifica la administración de tu consultorio médico con nuestra plataforma integral.
                     Gestiona turnos, pacientes y médicos de manera eficiente y profesional.
                 </p>
                 <div class="hero-actions">
@@ -603,7 +603,7 @@
             <div class="features-container">
                 <h2 class="section-title">¿Por qué elegir MediTurnos?</h2>
                 <p class="section-subtitle">
-                    Nuestra plataforma está diseñada específicamente para profesionales de la salud, 
+                    Nuestra plataforma está diseñada específicamente para profesionales de la salud,
                     ofreciendo herramientas poderosas y fáciles de usar.
                 </p>
                 <div class="features-grid">
@@ -613,7 +613,7 @@
                         </div>
                         <h3 class="feature-title">Gestión de Turnos</h3>
                         <p class="feature-description">
-                            Programa, modifica y cancela turnos de manera intuitiva. 
+                            Programa, modifica y cancela turnos de manera intuitiva.
                             Sistema de notificaciones automáticas para pacientes y médicos.
                         </p>
                     </div>
@@ -623,7 +623,7 @@
                         </div>
                         <h3 class="feature-title">Base de Pacientes</h3>
                         <p class="feature-description">
-                            Mantén un registro completo de tus pacientes con historial médico, 
+                            Mantén un registro completo de tus pacientes con historial médico,
                             contactos de emergencia y notas personalizadas.
                         </p>
                     </div>
@@ -633,7 +633,7 @@
                         </div>
                         <h3 class="feature-title">Gestión de Médicos</h3>
                         <p class="feature-description">
-                            Administra el equipo médico, especialidades, horarios de trabajo 
+                            Administra el equipo médico, especialidades, horarios de trabajo
                             y disponibilidad en tiempo real.
                         </p>
                     </div>
@@ -643,7 +643,7 @@
                         </div>
                         <h3 class="feature-title">Reportes y Estadísticas</h3>
                         <p class="feature-description">
-                            Genera reportes detallados sobre consultas, ingresos y 
+                            Genera reportes detallados sobre consultas, ingresos y
                             rendimiento del consultorio.
                         </p>
                     </div>
@@ -653,7 +653,7 @@
                         </div>
                         <h3 class="feature-title">Acceso Móvil</h3>
                         <p class="feature-description">
-                            Accede a tu sistema desde cualquier dispositivo. 
+                            Accede a tu sistema desde cualquier dispositivo.
                             Interfaz responsive optimizada para tablets y móviles.
                         </p>
                     </div>
@@ -663,7 +663,7 @@
                         </div>
                         <h3 class="feature-title">Seguridad y Privacidad</h3>
                         <p class="feature-description">
-                            Protección de datos médicos con encriptación avanzada 
+                            Protección de datos médicos con encriptación avanzada
                             y cumplimiento de normativas de privacidad.
                         </p>
                     </div>
@@ -676,7 +676,7 @@
             <div class="cta-container">
                 <h2 class="cta-title">¿Listo para modernizar tu consultorio?</h2>
                 <p class="cta-description">
-                    Únete a cientos de profesionales de la salud que ya confían en MediTurnos 
+                    Únete a cientos de profesionales de la salud que ya confían en MediTurnos
                     para gestionar sus consultorios de manera eficiente.
                 </p>
                 <div class="cta-actions">
@@ -689,7 +689,7 @@
                         Acceder al Sistema
                     </button>
                 </div>
-                
+
             </div>
         </section>
     </main>
@@ -700,7 +700,7 @@
             <div class="footer-section">
                 <h3>MediTurnos</h3>
                 <p>
-                    La solución integral para la gestión de turnos médicos. 
+                    La solución integral para la gestión de turnos médicos.
                     Diseñada por profesionales, para profesionales.
                 </p>
             </div>
@@ -768,30 +768,53 @@
                 <h2>Crear Cuenta</h2>
                 <p>Únete a MediTurnos y comienza a gestionar tu consultorio</p>
             </div>
-            <form class="login-form" onsubmit="handleRegister(event)">
+
+            <form id="registerForm" class="login-form">
+
                 <div class="form-group">
-                    <label for="regName">Nombre Completo</label>
-                    <input type="text" id="regName" name="name" required>
+                    <label for="regNombre">Nombre</label>
+                    <input type="text" id="regNombre" name="nombre" required>
                 </div>
+
+                <div class="form-group">
+                    <label for="regApellido">Apellido</label>
+                    <input type="text" id="regApellido" name="apellido" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regDNI">DNI</label>
+                    <input type="text" id="regDNI" name="dni" inputmode="numeric" pattern="^\d{2}\.\d{3}\.\d{3}$" maxlength="10" placeholder="12.345.678" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regFecha">Fecha de Nacimiento (dd/mm/yyyy)</label>
+                    <input type="text" id="regFecha" name="fecha_de_nacimiento" inputmode="numeric" pattern="^\d{2}\/\d{2}\/\d{4}$" maxlength="10" placeholder="dd/mm/yyyy" required>
+                </div>
+
                 <div class="form-group">
                     <label for="regEmail">Correo Electrónico</label>
                     <input type="email" id="regEmail" name="email" required>
                 </div>
+
                 <div class="form-group">
                     <label for="regPassword">Contraseña</label>
-                    <input type="password" id="regPassword" name="password" required>
+                    <input type="password" id="regPassword" name="password" required minlength="8" maxlength="32" pattern="(?=.*[A-Z])(?=.*\d).{8,32}" placeholder="Al menos 8 caracteres, 1 mayúscula y 1 número">
                 </div>
+
                 <div class="form-group">
                     <label for="regConfirmPassword">Confirmar Contraseña</label>
-                    <input type="password" id="regConfirmPassword" name="confirmPassword" required>
+                    <input type="password" id="regConfirmPassword" name="confirmPassword" required maxlength="32">
                 </div>
+
                 <div class="login-actions">
                     <button type="submit" class="btn-primary" style="width: 100%;">
                         <i class="fas fa-user-plus"></i>
                         Crear Cuenta
                     </button>
+
                     <div class="login-link">
-                        ¿Ya tienes cuenta? <a href="#" onclick="switchToLogin()">Inicia sesión aquí</a>
+                        ¿Ya tienes cuenta?
+                        <a href="#" onclick="switchToLogin()">Inicia sesión aquí</a>
                     </div>
                 </div>
             </form>
@@ -800,8 +823,9 @@
 
     <script src="config.js"></script>
     <script src="auth.js"></script>
+    <script src="register.js"></script>
     <script>
-        // Funciones para manejar la landing page
+        
         function openLoginModal() {
             document.getElementById('loginModal').classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -833,8 +857,8 @@
         }
 
         function scrollToFeatures() {
-            document.getElementById('features').scrollIntoView({ 
-                behavior: 'smooth' 
+            document.getElementById('features').scrollIntoView({
+                behavior: 'smooth'
             });
         }
 
@@ -862,7 +886,7 @@
             event.preventDefault();
             const email = event.target.email.value;
             const password = event.target.password.value;
-            
+
             if (!email || !password) {
                 alert('Por favor complete todos los campos');
                 return;
@@ -870,7 +894,7 @@
 
             try {
                 const result = await window.authManager.login(email, password);
-                
+
                 if (result.success) {
                     alert(`¡Bienvenido, ${result.user.name}!`);
                     closeLoginModal();
@@ -883,46 +907,13 @@
             }
         }
 
-        async function handleRegister(event) {
-            event.preventDefault();
-            const name = event.target.name.value;
-            const email = event.target.email.value;
-            const password = event.target.password.value;
-            const confirmPassword = event.target.confirmPassword.value;
-            
-            if (!name || !email || !password || !confirmPassword) {
-                alert('Por favor complete todos los campos');
-                return;
-            }
-
-            try {
-                const userData = {
-                    name: name,
-                    email: email,
-                    password: password,
-                    confirmPassword: confirmPassword,
-                    role: 'doctor' // Rol por defecto
-                };
-
-                const result = await window.authManager.register(userData);
-                
-                if (result.success) {
-                    alert(`¡Cuenta creada exitosamente, ${result.user.name}!`);
-                    closeRegisterModal();
-                    window.location.href = 'index.html';
-                } else {
-                    alert(result.error || 'Error al crear la cuenta');
-                }
-            } catch (error) {
-                alert('Error al crear la cuenta: ' + error.message);
-            }
-        }
+        
 
         // Cerrar modales al hacer clic fuera
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const loginModal = document.getElementById('loginModal');
             const registerModal = document.getElementById('registerModal');
-            
+
             if (event.target === loginModal) {
                 closeLoginModal();
             }
@@ -961,7 +952,7 @@
         }, observerOptions);
 
         // Aplicar animación a las tarjetas de características
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // En la landing page, no redirigir automáticamente
             // Permitir que el usuario vea la página de inicio
             console.log('Landing page cargada - usuario puede ver la página');

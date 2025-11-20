@@ -832,6 +832,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Opcional: cargar datos de demostración
         // window.DemoData.loadDemoData();
     }
+
+    // --- Lógica para rotar vistas de rol ---
+    // Definir roles y rolActual si no existen
+    window.roles = ['paciente', 'medico', 'secretario'];
+    let rolActual = localStorage.getItem('userRole') || 'paciente';
+    mostrarVistaPorRol(rolActual);
+    const btn = document.getElementById('btn-rol-toggle');
+    if (btn) {
+        btn.addEventListener('click', function() {
+            let idx = window.roles.indexOf(rolActual);
+            rolActual = window.roles[(idx + 1) % window.roles.length];
+            localStorage.setItem('userRole', rolActual);
+            mostrarVistaPorRol(rolActual);
+        });
+    }
 });
 
 // Funciones globales de utilidad
@@ -1010,3 +1025,58 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Función para mostrar vista por rol
+function mostrarVistaPorRol(rol) {
+    // Oculta todas las secciones y nav-items (sidebar)
+    document.querySelectorAll('.nav-item').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
+    let btns = document.querySelectorAll('.section-actions .btn-primary');
+    btns.forEach(btn => btn.style.display = 'none');
+
+    // Mostrar según rol
+    if (rol === 'paciente') {
+        // Sidebar
+        let navDashboard = document.querySelector('[data-section="dashboard"]');
+        let navAppointments = document.querySelector('[data-section="appointments"]');
+        if (navDashboard) navDashboard.style.display = '';
+        if (navAppointments) navAppointments.style.display = '';
+        // Secciones
+        let secDashboard = document.getElementById('dashboard');
+        let secAppointments = document.getElementById('appointments');
+        if (secDashboard) secDashboard.style.display = '';
+        if (secAppointments) secAppointments.style.display = '';
+        // Botón crear turno
+        let turnoBtn = document.getElementById('newAppointmentBtn');
+        if (turnoBtn) turnoBtn.style.display = '';
+    } else if (rol === 'medico') {
+        // Sidebar
+        let navDashboard = document.querySelector('[data-section="dashboard"]');
+        let navAppointments = document.querySelector('[data-section="appointments"]');
+        let navPatients = document.querySelector('[data-section="patients"]');
+        if (navDashboard) navDashboard.style.display = '';
+        if (navAppointments) navAppointments.style.display = '';
+        if (navPatients) navPatients.style.display = '';
+        // Secciones
+        let secDashboard = document.getElementById('dashboard');
+        let secAppointments = document.getElementById('appointments');
+        let secPatients = document.getElementById('patients');
+        if (secDashboard) secDashboard.style.display = '';
+        if (secAppointments) secAppointments.style.display = '';
+        if (secPatients) secPatients.style.display = '';
+        // Botón crear turno y paciente
+        let turnoBtn = document.getElementById('newAppointmentBtn');
+        if (turnoBtn) turnoBtn.style.display = '';
+        let pacienteBtns = Array.from(document.querySelectorAll('.section-actions .btn-primary')).filter(btn => btn.textContent.includes('Paciente'));
+        pacienteBtns.forEach(btn => btn.style.display = '');
+    } else if (rol === 'secretario') {
+        // Sidebar y secciones
+        document.querySelectorAll('.nav-item').forEach(el => el.style.display = '');
+        document.querySelectorAll('.content-section').forEach(el => el.style.display = '');
+        btns.forEach(btn => btn.style.display = '');
+    }
+
+    // Actualiza el texto del botón
+    const btn = document.getElementById('btn-rol-toggle');
+    if (btn) btn.textContent = 'Rol: ' + rol.charAt(0).toUpperCase() + rol.slice(1);
+}

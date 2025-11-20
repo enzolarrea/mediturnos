@@ -1036,35 +1036,19 @@ function mostrarVistaPorRol(rol) {
 
     // Mostrar según rol
     if (rol === 'paciente') {
-        // Sidebar: solo "Turnos" y "Médicos"
+        // Sidebar
+        let navDashboard = document.querySelector('[data-section="dashboard"]');
         let navAppointments = document.querySelector('[data-section="appointments"]');
-        let navDoctors = document.querySelector('[data-section="doctors"]');
+        if (navDashboard) navDashboard.style.display = '';
         if (navAppointments) navAppointments.style.display = '';
-        if (navDoctors) navDoctors.style.display = '';
-        // Secciones: solo "Turnos" y "Médicos"
+        // Secciones
+        let secDashboard = document.getElementById('dashboard');
         let secAppointments = document.getElementById('appointments');
-        let secDoctors = document.getElementById('doctors');
+        if (secDashboard) secDashboard.style.display = '';
         if (secAppointments) secAppointments.style.display = '';
-        if (secDoctors) secDoctors.style.display = '';
         // Botón crear turno
         let turnoBtn = document.getElementById('newAppointmentBtn');
         if (turnoBtn) turnoBtn.style.display = '';
-
-        // Mostrar mensaje si no hay turnos
-        let appointmentsTable = document.querySelector('#appointments .appointments-table tbody');
-        if (appointmentsTable) {
-            // Verifica si hay filas de turnos
-            let rows = appointmentsTable.querySelectorAll('tr');
-            if (rows.length === 0) {
-                let msgRow = document.createElement('tr');
-                let msgCell = document.createElement('td');
-                msgCell.colSpan = 6;
-                msgCell.style.textAlign = 'center';
-                msgCell.textContent = 'Sin turnos asignados.';
-                msgRow.appendChild(msgCell);
-                appointmentsTable.appendChild(msgRow);
-            }
-        }
     } else if (rol === 'medico') {
         // Sidebar
         let navDashboard = document.querySelector('[data-section="dashboard"]');
@@ -1110,27 +1094,5 @@ function mostrarVistaPorRol(rol) {
             userName.textContent = 'Secretario Demo';
             userRole.textContent = 'Secretario';
         }
-    }
-
-    // Si es paciente, ocultar botones de edición/cancelación y mostrar solo sus turnos
-    if (rol === 'paciente') {
-        // Oculta los botones de editar/cancelar en la tabla de turnos
-        let appointmentRows = document.querySelectorAll('#appointments .appointments-table tbody tr');
-        appointmentRows.forEach(row => {
-            let editBtn = row.querySelector('button[title="Editar"]');
-            let cancelBtn = row.querySelector('button[title="Cancelar"]');
-            if (editBtn) editBtn.style.display = 'none';
-            if (cancelBtn) cancelBtn.style.display = 'none';
-        });
-
-        // Filtra los turnos para mostrar solo los del paciente demo
-        appointmentRows.forEach(row => {
-            let pacienteCell = row.querySelector('td:nth-child(2)');
-            if (pacienteCell && pacienteCell.textContent.trim() !== 'María González') {
-                row.style.display = 'none';
-            } else {
-                row.style.display = '';
-            }
-        });
     }
 }

@@ -1079,4 +1079,20 @@ function mostrarVistaPorRol(rol) {
     // Actualiza el texto del botón
     const btn = document.getElementById('btn-rol-toggle');
     if (btn) btn.textContent = 'Rol: ' + rol.charAt(0).toUpperCase() + rol.slice(1);
+
+    // Actualiza el nombre y rol en la barra lateral
+    const userName = document.querySelector('.user-name');
+    const userRole = document.querySelector('.user-role');
+    if (userName && userRole) {
+        if (rol === 'paciente') {
+            userName.textContent = 'Paciente Demo';
+            userRole.textContent = 'Paciente';
+        } else if (rol === 'medico') {
+            userName.textContent = 'Dr. Demo';
+            userRole.textContent = 'Médico';
+        } else if (rol === 'secretario') {
+            userName.textContent = 'Secretario Demo';
+            userRole.textContent = 'Secretario';
+        }
+    }
 }

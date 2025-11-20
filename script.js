@@ -878,6 +878,14 @@ window.logout = function() {
     }
 };
 
+// Función global para borrar TODO el localStorage
+window.clearLocalStorage = function() {
+    localStorage.clear();
+    console.log('LocalStorage borrado completamente');
+    // Opcional: recargar la página
+    // location.reload();
+};
+
 // Agregar estilos CSS para animaciones de notificaciones
 const style = document.createElement('style');
 style.textContent = `

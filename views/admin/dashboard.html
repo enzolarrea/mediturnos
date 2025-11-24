@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - MediTurnos Pro</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/layout.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-stethoscope"></i>
+                    <h2>MediTurnos</h2>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active" data-section="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </li>
+                    <li class="nav-item" data-section="turnos">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Turnos</span>
+                    </li>
+                    <li class="nav-item" data-section="pacientes">
+                        <i class="fas fa-user-injured"></i>
+                        <span>Pacientes</span>
+                    </li>
+                    <li class="nav-item" data-section="medicos">
+                        <i class="fas fa-user-md"></i>
+                        <span>Médicos</span>
+                    </li>
+                    <li class="nav-item" data-section="usuarios">
+                        <i class="fas fa-users"></i>
+                        <span>Usuarios</span>
+                    </li>
+                    <li class="nav-item" data-section="reportes">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reportes</span>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar"><i class="fas fa-user"></i></div>
+                    <div class="user-info">
+                        <span class="user-name">Admin</span>
+                        <span class="user-role">Administrador</span>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="sidebar-toggle"><i class="fas fa-bars"></i></button>
+                    <h1 class="page-title">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Buscar...">
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-icon" title="Notificaciones">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" id="notification-count">0</span>
+                        </button>
+                        <button class="btn-primary" id="newAppointmentBtn">
+                            <i class="fas fa-plus"></i>
+                            Nuevo Turno
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="content-section active">
+                    <div class="stats-grid" id="stats-grid">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-xl); margin-top: var(--spacing-xl);">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Turnos Recientes</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="recent-appointments"></div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Actividad Reciente</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="recent-activity"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Turnos Section -->
+                <section id="turnos" class="content-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
+                        <h2>Gestión de Turnos</h2>
+                        <button class="btn-primary" id="addAppointmentBtn2">
+                            <i class="fas fa-plus"></i>
+                            Nuevo Turno
+                        </button>
+                    </div>
+                    <div class="filters-bar" style="background: var(--bg-primary); padding: var(--spacing-lg); border-radius: var(--border-radius-lg); margin-bottom: var(--spacing-xl); display: flex; gap: var(--spacing-lg);">
+                        <div class="form-group" style="margin: 0; flex: 1;">
+                            <label>Fecha</label>
+                            <input type="date" class="form-control" id="filter-fecha">
+                        </div>
+                        <div class="form-group" style="margin: 0; flex: 1;">
+                            <label>Médico</label>
+                            <select class="form-control" id="filter-medico">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0; flex: 1;">
+                            <label>Estado</label>
+                            <select class="form-control" id="filter-estado">
+                                <option value="">Todos</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="confirmado">Confirmado</option>
+                                <option value="completado">Completado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="appointments-table"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Otras secciones se agregarán aquí -->
+                <section id="pacientes" class="content-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
+                        <h2>Pacientes</h2>
+                        <button class="btn-primary" id="addPacienteBtn">
+                            <i class="fas fa-plus"></i>
+                            Nuevo Paciente
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="pacientes-grid"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="medicos" class="content-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
+                        <h2>Médicos</h2>
+                        <button class="btn-primary" id="addMedicoBtn">
+                            <i class="fas fa-plus"></i>
+                            Nuevo Médico
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="medicos-grid"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="usuarios" class="content-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
+                        <h2>Usuarios</h2>
+                        <button class="btn-primary" id="addUsuarioBtn">
+                            <i class="fas fa-plus"></i>
+                            Nuevo Usuario
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="usuarios-table"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="reportes" class="content-section">
+                    <h2>Reportes y Estadísticas</h2>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="reports-content"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Los modales se crean dinámicamente mediante ModalManager -->
+
+    <script type="module" src="../../js/app.js"></script>
+    <script type="module" src="../../js/app-complete.js"></script>
+    <script type="module" src="../../js/views/admin/dashboard.js"></script>
+</body>
+</html>
+

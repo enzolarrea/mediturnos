@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediTurnos Pro</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-stethoscope"></i>
+                    <h2>MediTurnos</h2>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul id="nav-menu">
+                    <!-- Se llenará dinámicamente según el rol -->
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">Usuario</span>
+                        <span class="user-role">Rol</span>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="page-title">Dashboard</h1>
+                </div>
+
+                <div class="header-right">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Buscar...">
+                    </div>
+
+                    <div class="header-actions">
+                        <button class="btn-icon" title="Notificaciones">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" id="notification-count">0</span>
+                        </button>
+                        <button class="btn-icon" title="Cerrar Sesión" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="content">
+                <div id="dashboard" class="content-section active">
+                    <!-- Contenido del dashboard -->
+                </div>
+                <!-- Otras secciones se agregarán dinámicamente -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { AuthManager } from '../js/modules/auth.js';
+        import { Router } from '../js/modules/router.js';
+        
+        window.logout = function() {
+            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                AuthManager.logout();
+                window.location.href = '../landing.html';
+            }
+        };
+    </script>
+    <script type="module" src="../js/app.js"></script>
+</body>
+</html>
+

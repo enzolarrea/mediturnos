@@ -440,7 +440,7 @@ window.editarPerfil = async function() {
         return;
     }
     
-    const paciente = PacientesManager.getById(user.pacienteId);
+    const paciente = await PacientesManager.getById(user.pacienteId);
     if (!paciente) {
         NotificationManager.error('Paciente no encontrado');
         return;

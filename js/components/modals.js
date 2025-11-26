@@ -49,8 +49,9 @@ export class ModalManager {
         const { MedicosManager } = await import('../modules/medicos.js');
         const { CONFIG } = await import('../config.js');
 
-        const pacientes = PacientesManager.getAll({ activo: true });
-        const medicos = MedicosManager.getAll({ activo: true });
+        // Obtener datos desde la API (async)
+        const pacientes = await PacientesManager.getAll({ activo: true });
+        const medicos = await MedicosManager.getAll({ activo: true });
 
         const isEdit = !!turno;
         const title = isEdit ? 'Editar Turno' : 'Nuevo Turno';
@@ -143,7 +144,7 @@ export class ModalManager {
 
             if (!medicoId || !fecha) return;
 
-            const horariosDisponibles = MedicosManager.getHorariosDisponibles(parseInt(medicoId), fecha);
+            const horariosDisponibles = await MedicosManager.getHorariosDisponibles(parseInt(medicoId), fecha);
             const horaActual = horaSelect.value;
 
             horaSelect.innerHTML = '<option value="">Seleccionar hora</option>' +
@@ -186,12 +187,12 @@ export class ModalManager {
 
         let result;
         if (turnoId) {
-            result = TurnosManager.update(turnoId, turnoData);
+            result = await TurnosManager.update(turnoId, turnoData);
         } else {
-            result = TurnosManager.create(turnoData);
+            result = await TurnosManager.create(turnoData);
         }
 
-        if (result.success) {
+        if (result && result.success) {
             NotificationManager.success(turnoId ? 'Turno actualizado exitosamente' : 'Turno creado exitosamente');
             this.closeModal('turnoModal');
             
@@ -310,12 +311,12 @@ export class ModalManager {
 
         let result;
         if (pacienteId) {
-            result = PacientesManager.update(pacienteId, pacienteData);
+            result = await PacientesManager.update(pacienteId, pacienteData);
         } else {
-            result = PacientesManager.create(pacienteData);
+            result = await PacientesManager.create(pacienteData);
         }
 
-        if (result.success) {
+        if (result && result.success) {
             NotificationManager.success(pacienteId ? 'Paciente actualizado exitosamente' : 'Paciente creado exitosamente');
             this.closeModal('pacienteModal');
             
@@ -427,12 +428,12 @@ export class ModalManager {
 
         let result;
         if (medicoId) {
-            result = MedicosManager.update(medicoId, medicoData);
+            result = await MedicosManager.update(medicoId, medicoData);
         } else {
-            result = MedicosManager.create(medicoData);
+            result = await MedicosManager.create(medicoData);
         }
 
-        if (result.success) {
+        if (result && result.success) {
             NotificationManager.success(medicoId ? 'Médico actualizado exitosamente' : 'Médico creado exitosamente');
             this.closeModal('medicoModal');
             
@@ -461,14 +462,14 @@ export class ModalManager {
         const { TurnosManager } = await import('../modules/turnos.js');
         const { MedicosManager } = await import('../modules/medicos.js');
 
-        const paciente = PacientesManager.getById(pacienteId);
+        const paciente = await PacientesManager.getById(pacienteId);
         if (!paciente) {
             NotificationManager.error('Paciente no encontrado');
             return;
         }
 
-        const historial = PacientesManager.getHistorial(pacienteId);
-        const medicos = MedicosManager.getAll();
+        const historial = await PacientesManager.getHistorial(pacienteId);
+        const medicos = await MedicosManager.getAll();
 
         let content = `
             <div style="margin-bottom: var(--spacing-lg);">
@@ -525,8 +526,8 @@ export class ModalManager {
         const isEdit = !!usuario;
         const title = isEdit ? 'Editar Usuario' : 'Nuevo Usuario';
 
-        const medicos = MedicosManager.getAll({ activo: true });
-        const pacientes = PacientesManager.getAll({ activo: true });
+        const medicos = await MedicosManager.getAll({ activo: true });
+        const pacientes = await PacientesManager.getAll({ activo: true });
 
         let content = `
             <form id="usuarioForm">
@@ -657,12 +658,12 @@ export class ModalManager {
 
         let result;
         if (usuarioId) {
-            result = UsuariosManager.update(usuarioId, usuarioData);
+            result = await UsuariosManager.update(usuarioId, usuarioData);
         } else {
-            result = UsuariosManager.create(usuarioData);
+            result = await UsuariosManager.create(usuarioData);
         }
 
-        if (result.success) {
+        if (result && result.success) {
             NotificationManager.success(usuarioId ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente');
             this.closeModal('usuarioModal');
             
@@ -739,7 +740,7 @@ export class ModalManager {
     // Modal para cambiar estado de turno
     static async openEstadoTurnoModal(turnoId) {
         const { TurnosManager } = await import('../modules/turnos.js');
-        const turno = TurnosManager.getById(turnoId);
+        const turno = await TurnosManager.getById(turnoId);
         
         if (!turno) {
             NotificationManager.error('Turno no encontrado');
@@ -795,9 +796,9 @@ export class ModalManager {
             notas: formData.get('notas') || ''
         };
 
-        const result = TurnosManager.update(turnoId, updates);
+        const result = await TurnosManager.update(turnoId, updates);
         
-        if (result.success) {
+        if (result && result.success) {
             NotificationManager.success('Estado actualizado exitosamente');
             this.closeModal('estadoTurnoModal');
             

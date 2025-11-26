@@ -69,11 +69,11 @@ class AdminDashboard {
         return titles[sectionId] || 'Dashboard';
     }
 
-    loadDashboard() {
-        const turnos = TurnosManager.getAll();
-        const pacientes = PacientesManager.getAll();
-        const medicos = MedicosManager.getAll();
-        const usuarios = UsuariosManager.getAll();
+    async loadDashboard() {
+        const turnos = await TurnosManager.getAll();
+        const pacientes = await PacientesManager.getAll();
+        const medicos = await MedicosManager.getAll();
+        const usuarios = UsuariosManager.getAll(); // TODO: migrar a API
         
         const hoy = new Date().toISOString().split('T')[0];
         const turnosHoy = turnos.filter(t => t.fecha === hoy && t.estado !== 'cancelado');
@@ -116,7 +116,7 @@ class AdminDashboard {
         // Turnos recientes
         const recentAppointments = document.getElementById('recent-appointments');
         if (recentAppointments) {
-            const proximos = TurnosManager.getProximosTurnos(5);
+            const proximos = await TurnosManager.getProximosTurnos(5);
             if (proximos.length === 0) {
                 recentAppointments.innerHTML = '<p class="text-muted">No hay turnos próximos</p>';
             } else {
@@ -139,10 +139,10 @@ class AdminDashboard {
         }
     }
 
-    loadTurnos() {
-        const turnos = TurnosManager.getAll();
-        const medicos = MedicosManager.getAll();
-        const pacientes = PacientesManager.getAll();
+    async loadTurnos() {
+        const turnos = await TurnosManager.getAll();
+        const medicos = await MedicosManager.getAll();
+        const pacientes = await PacientesManager.getAll();
 
         // Llenar filtros
         const medicoFilter = document.getElementById('filter-medico');
@@ -204,8 +204,8 @@ class AdminDashboard {
         `;
     }
 
-    loadPacientes() {
-        const pacientes = PacientesManager.getAll({ activo: true });
+    async loadPacientes() {
+        const pacientes = await PacientesManager.getAll({ activo: true });
         const grid = document.getElementById('pacientes-grid');
         if (!grid) return;
 
@@ -245,8 +245,8 @@ class AdminDashboard {
         `;
     }
 
-    loadMedicos() {
-        const medicos = MedicosManager.getAll({ activo: true });
+    async loadMedicos() {
+        const medicos = await MedicosManager.getAll({ activo: true });
         const grid = document.getElementById('medicos-grid');
         if (!grid) return;
 
@@ -282,7 +282,7 @@ class AdminDashboard {
     }
 
     loadUsuarios() {
-        const usuarios = UsuariosManager.getAll({ activo: true });
+        const usuarios = UsuariosManager.getAll({ activo: true }); // aún basado en localStorage
         const table = document.getElementById('usuarios-table');
         if (!table) return;
 
@@ -321,7 +321,7 @@ class AdminDashboard {
         `;
     }
 
-    loadReportes() {
+    async loadReportes() {
         const content = document.getElementById('reports-content');
         if (!content) return;
 
@@ -329,7 +329,7 @@ class AdminDashboard {
         const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
         const finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().split('T')[0];
         
-        const stats = TurnosManager.getEstadisticas(inicioMes, finMes);
+        const stats = await TurnosManager.getEstadisticas(inicioMes, finMes);
 
         content.innerHTML = `
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-lg);">
@@ -399,7 +399,7 @@ class AdminDashboard {
         document.getElementById('filter-estado')?.addEventListener('change', () => this.applyFilters());
     }
 
-    applyFilters() {
+    async applyFilters() {
         const fecha = document.getElementById('filter-fecha')?.value;
         const medicoId = document.getElementById('filter-medico')?.value;
         const estado = document.getElementById('filter-estado')?.value;
@@ -409,9 +409,9 @@ class AdminDashboard {
         if (medicoId) filters.medicoId = medicoId;
         if (estado) filters.estado = estado;
 
-        const turnos = TurnosManager.getAll(filters);
-        const medicos = MedicosManager.getAll();
-        const pacientes = PacientesManager.getAll();
+        const turnos = await TurnosManager.getAll(filters);
+        const medicos = await MedicosManager.getAll();
+        const pacientes = await PacientesManager.getAll();
         this.renderTurnosTable(turnos, medicos, pacientes);
     }
 
@@ -443,7 +443,7 @@ window.logout = async function() {
 // Funciones movidas a ModalManager
 
 window.editTurno = async function(id) {
-    const turno = TurnosManager.getById(id);
+    const turno = await TurnosManager.getById(id);
     if (!turno) {
         NotificationManager.error('Turno no encontrado');
         return;
@@ -463,14 +463,14 @@ window.cancelTurno = async function(id) {
     await window.ModalManager.confirm(
         'Cancelar Turno',
         '¿Estás seguro de que deseas cancelar este turno? Esta acción no se puede deshacer.',
-        () => {
-            const result = TurnosManager.cancel(id);
-            if (result.success) {
+        async () => {
+            const result = await TurnosManager.cancel(id);
+            if (result && result.success) {
                 NotificationManager.success('Turno cancelado exitosamente');
-                dashboard.loadTurnos();
-                dashboard.loadDashboard();
+                await dashboard.loadTurnos();
+                await dashboard.loadDashboard();
             } else {
-                NotificationManager.error(result.message || 'Error al cancelar el turno');
+                NotificationManager.error(result?.message || 'Error al cancelar el turno');
             }
         }
     );

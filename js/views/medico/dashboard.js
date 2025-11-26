@@ -12,13 +12,16 @@ class MedicoDashboard {
             return;
         }
         this.user = AuthManager.getCurrentUser();
-        this.medico = this.user.medicoId ? MedicosManager.getById(this.user.medicoId) : null;
+        this.medico = null;
         this.init();
     }
 
-    init() {
+    async init() {
+        if (this.user && this.user.medicoId) {
+            this.medico = await MedicosManager.getById(this.user.medicoId);
+        }
         this.setupNavigation();
-        this.loadDashboard();
+        await this.loadDashboard();
     }
 
     setupNavigation() {
@@ -39,14 +42,14 @@ class MedicoDashboard {
         });
     }
 
-    loadDashboard() {
+    async loadDashboard() {
         if (!this.medico) {
             NotificationManager.warning('No se encontró información del médico');
             return;
         }
 
         const hoy = new Date().toISOString().split('T')[0];
-        const turnosHoy = TurnosManager.getAll({ medicoId: this.medico.id, fecha: hoy });
+        const turnosHoy = await TurnosManager.getAll({ medicoId: this.medico.id, fecha: hoy });
 
         document.getElementById('stats-grid').innerHTML = `
             <div class="stat-card">
@@ -82,8 +85,8 @@ class MedicoDashboard {
         }
     }
 
-    loadTurnos() {
-        const turnos = TurnosManager.getAll({ medicoId: this.medico.id });
+    async loadTurnos() {
+        const turnos = await TurnosManager.getAll({ medicoId: this.medico.id });
         const div = document.getElementById('mis-turnos');
         if (!div) return;
         
@@ -106,10 +109,14 @@ class MedicoDashboard {
         }).join('');
     }
 
-    loadPacientes() {
-        const turnos = TurnosManager.getAll({ medicoId: this.medico.id });
+    async loadPacientes() {
+        const turnos = await TurnosManager.getAll({ medicoId: this.medico.id });
         const pacientesIds = [...new Set(turnos.map(t => t.pacienteId))];
-        const pacientes = pacientesIds.map(id => PacientesManager.getById(id)).filter(p => p);
+        const pacientes = [];
+        for (const id of pacientesIds) {
+            const p = await PacientesManager.getById(id);
+            if (p) pacientes.push(p);
+        }
         
         const list = document.getElementById('pacientes-list');
         if (!list) return;
@@ -187,7 +194,7 @@ window.editarDisponibilidad = async function() {
         return;
     }
     
-    const medico = MedicosManager.getById(user.medicoId);
+    const medico = await MedicosManager.getById(user.medicoId);
     if (!medico) {
         NotificationManager.error('Médico no encontrado');
         return;

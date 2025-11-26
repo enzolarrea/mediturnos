@@ -49,72 +49,78 @@ export class MedicosManager {
         }
     }
 
-    static create(medicoData) {
-        const medicos = StorageManager.get(CONFIG.STORAGE.MEDICOS) || [];
-
-        // Validar matrícula única
-        if (medicos.find(m => m.matricula === medicoData.matricula)) {
-            return { success: false, message: 'Ya existe un médico con esta matrícula' };
-        }
-
-        const newMedico = {
-            id: Date.now(),
-            nombre: medicoData.nombre,
-            especialidad: medicoData.especialidad,
-            matricula: medicoData.matricula,
-            horario: medicoData.horario || '',
-            email: medicoData.email || '',
-            telefono: medicoData.telefono || '',
-            activo: true,
-            disponibilidad: medicoData.disponibilidad || {},
-            fechaCreacion: new Date().toISOString()
-        };
-
-        medicos.push(newMedico);
-        StorageManager.set(CONFIG.STORAGE.MEDICOS, medicos);
-
-        return { success: true, medico: newMedico };
-    }
-
-    static update(id, updates) {
-        const medicos = StorageManager.get(CONFIG.STORAGE.MEDICOS) || [];
-        const index = medicos.findIndex(m => m.id === parseInt(id));
-
-        if (index === -1) {
-            return { success: false, message: 'Médico no encontrado' };
-        }
-
-        // Validar matrícula única si se cambia
-        if (updates.matricula && updates.matricula !== medicos[index].matricula) {
-            const existe = medicos.find(m => m.matricula === updates.matricula && m.id !== parseInt(id));
-            if (existe) {
-                return { success: false, message: 'Ya existe un médico con esta matrícula' };
+    static async create(medicoData) {
+        try {
+            // Usar la API para crear
+            const medico = await ApiClient.createMedico(medicoData);
+            
+            if (medico) {
+                // Normalizar datos de respuesta
+                const medicoNormalizado = {
+                    ...medico,
+                    especialidad: medico.especialidades || medico.especialidad || '',
+                    especialidades: medico.especialidades ? 
+                        (typeof medico.especialidades === 'string' 
+                            ? medico.especialidades.split(', ') 
+                            : medico.especialidades) 
+                        : [medico.especialidad || '']
+                };
+                
+                return { success: true, medico: medicoNormalizado };
+            } else {
+                return { success: false, message: 'No se pudo crear el médico' };
             }
+        } catch (error) {
+            console.error('Error al crear médico:', error);
+            return { 
+                success: false, 
+                message: error.message || 'Error al crear el médico. Intente más tarde.' 
+            };
         }
-
-        medicos[index] = {
-            ...medicos[index],
-            ...updates,
-            fechaActualizacion: new Date().toISOString()
-        };
-
-        StorageManager.set(CONFIG.STORAGE.MEDICOS, medicos);
-        return { success: true, medico: medicos[index] };
     }
 
-    static delete(id) {
-        const medicos = StorageManager.get(CONFIG.STORAGE.MEDICOS) || [];
-        const index = medicos.findIndex(m => m.id === parseInt(id));
-
-        if (index === -1) {
-            return { success: false, message: 'Médico no encontrado' };
+    static async update(id, updates) {
+        try {
+            // Usar la API para actualizar
+            const medico = await ApiClient.updateMedico(id, updates);
+            
+            if (medico) {
+                // Normalizar datos de respuesta
+                const medicoNormalizado = {
+                    ...medico,
+                    especialidad: medico.especialidades || medico.especialidad || '',
+                    especialidades: medico.especialidades ? 
+                        (typeof medico.especialidades === 'string' 
+                            ? medico.especialidades.split(', ') 
+                            : medico.especialidades) 
+                        : [medico.especialidad || '']
+                };
+                
+                return { success: true, medico: medicoNormalizado };
+            } else {
+                return { success: false, message: 'No se pudo actualizar el médico' };
+            }
+        } catch (error) {
+            console.error('Error al actualizar médico:', error);
+            return { 
+                success: false, 
+                message: error.message || 'Error al actualizar el médico. Intente más tarde.' 
+            };
         }
+    }
 
-        // Soft delete
-        medicos[index].activo = false;
-        StorageManager.set(CONFIG.STORAGE.MEDICOS, medicos);
-
-        return { success: true };
+    static async delete(id) {
+        try {
+            // Usar la API para eliminar (soft delete)
+            await ApiClient.delete(`/medico/${id}`);
+            return { success: true };
+        } catch (error) {
+            console.error('Error al eliminar médico:', error);
+            return { 
+                success: false, 
+                message: error.message || 'Error al eliminar el médico. Intente más tarde.' 
+            };
+        }
     }
 
     static async getDisponibilidad(id, fecha) {
@@ -142,10 +148,15 @@ export class MedicosManager {
         }
     }
 
-    static getEspecialidades() {
-        const medicos = this.getAll({ activo: true });
-        const especialidades = [...new Set(medicos.map(m => m.especialidad))];
-        return especialidades.sort();
+    static async getEspecialidades() {
+        try {
+            const medicos = await this.getAll({ activo: true });
+            const especialidades = [...new Set(medicos.map(m => m.especialidad).filter(e => e))];
+            return especialidades.sort();
+        } catch (error) {
+            console.error('Error al obtener especialidades:', error);
+            return [];
+        }
     }
 }
 

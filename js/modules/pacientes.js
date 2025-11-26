@@ -31,58 +31,24 @@ export class PacientesManager {
         }
     }
 
-    static create(pacienteData) {
-        const pacientes = StorageManager.get(CONFIG.STORAGE.PACIENTES) || [];
-
-        // Validar DNI único
-        if (pacienteData.dni && pacientes.find(p => p.dni === pacienteData.dni)) {
-            return { success: false, message: 'Ya existe un paciente con este DNI' };
+    static async create(pacienteData) {
+        try {
+            const paciente = await ApiClient.createPaciente(pacienteData);
+            return { success: true, paciente };
+        } catch (error) {
+            console.error('Error al crear paciente:', error);
+            return { success: false, message: error.message || 'Error al crear el paciente' };
         }
-
-        const newPaciente = {
-            id: Date.now(),
-            nombre: pacienteData.nombre,
-            apellido: pacienteData.apellido,
-            dni: pacienteData.dni || '',
-            telefono: pacienteData.telefono || '',
-            email: pacienteData.email || '',
-            fechaNacimiento: pacienteData.fechaNacimiento || '',
-            direccion: pacienteData.direccion || '',
-            ultimaVisita: null,
-            activo: true,
-            fechaCreacion: new Date().toISOString()
-        };
-
-        pacientes.push(newPaciente);
-        StorageManager.set(CONFIG.STORAGE.PACIENTES, pacientes);
-
-        return { success: true, paciente: newPaciente };
     }
 
-    static update(id, updates) {
-        const pacientes = StorageManager.get(CONFIG.STORAGE.PACIENTES) || [];
-        const index = pacientes.findIndex(p => p.id === parseInt(id));
-
-        if (index === -1) {
-            return { success: false, message: 'Paciente no encontrado' };
+    static async update(id, updates) {
+        try {
+            const paciente = await ApiClient.updatePaciente(id, updates);
+            return { success: true, paciente };
+        } catch (error) {
+            console.error('Error al actualizar paciente:', error);
+            return { success: false, message: error.message || 'Error al actualizar el paciente' };
         }
-
-        // Validar DNI único si se cambia
-        if (updates.dni && updates.dni !== pacientes[index].dni) {
-            const existe = pacientes.find(p => p.dni === updates.dni && p.id !== parseInt(id));
-            if (existe) {
-                return { success: false, message: 'Ya existe un paciente con este DNI' };
-            }
-        }
-
-        pacientes[index] = {
-            ...pacientes[index],
-            ...updates,
-            fechaActualizacion: new Date().toISOString()
-        };
-
-        StorageManager.set(CONFIG.STORAGE.PACIENTES, pacientes);
-        return { success: true, paciente: pacientes[index] };
     }
 
     static delete(id) {

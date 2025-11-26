@@ -21,9 +21,9 @@
                 <h1>MediTurnos</h1>
             </a>
             <div class="landing-nav-actions">
-                <a href="#features" class="landing-nav-link">Características</a>
-                <a href="#about" class="landing-nav-link">Acerca de</a>
-                <a href="#contact" class="landing-nav-link">Contacto</a>
+                <a href="#features" style="cursor: pointer;" onclick="scrollToFeatures(event); return false;" class="landing-nav-link">Características</a>
+                <a href="#" style="cursor: pointer;" onclick="event.preventDefault(); openInfoModal('acerca'); return false;" class="landing-nav-link">Acerca de</a>
+                <a href="#" onclick="event.preventDefault(); openInfoModal('contacto'); return false;" style="cursor: pointer;" class="landing-nav-link">Soporte</a>
                 <button class="btn-secondary" onclick="openLoginModal()">
                     <i class="fas fa-sign-in-alt"></i>
                     Iniciar Sesión
@@ -50,7 +50,7 @@
                         <i class="fas fa-rocket"></i>
                         Comenzar Gratis
                     </button>
-                    <button class="btn-secondary" onclick="scrollToFeatures()">
+                    <button class="btn-secondary" style="cursor: pointer;" onclick="scrollToFeatures(event); return false;">
                         <i class="fas fa-info-circle"></i>
                         Más Información
                     </button>
@@ -191,23 +191,19 @@
             </div>
             <div class="footer-section">
                 <h3>Producto</h3>
-                <p><a href="#features">Características</a></p>
-                <p><a href="#pricing">Precios</a></p>
-                <p><a href="#demo">Demo</a></p>
-                <p><a href="#api">API</a></p>
+                <p><a href="#features" style="cursor: pointer;" onclick="scrollToFeatures(event); return false;">Características</a></p>
+                <p><a href="#" onclick="event.preventDefault(); openInfoModal('precios'); return false;">Precios</a></p>
+
             </div>
             <div class="footer-section">
                 <h3>Soporte</h3>
-                <p><a href="#help">Centro de Ayuda</a></p>
-                <p><a href="#contact">Contacto</a></p>
-                <p><a href="#docs">Documentación</a></p>
-                <p><a href="#status">Estado del Sistema</a></p>
+                <p><a href="#" onclick="event.preventDefault(); openInfoModal('ayuda'); return false;">Centro de Ayuda</a></p>
+                <p><a href="#" onclick="event.preventDefault(); openInfoModal('contacto'); return false;">Contacto</a></p>
             </div>
             <div class="footer-section">
                 <h3>Legal</h3>
-                <p><a href="#privacy">Política de Privacidad</a></p>
-                <p><a href="#terms">Términos de Servicio</a></p>
-                <p><a href="#cookies">Política de Cookies</a></p>
+                <p><a href="#" onclick="event.preventDefault(); openInfoModal('privacidad'); return false;">Política de Privacidad</a></p>
+                <p><a href="#" onclick="event.preventDefault(); openInfoModal('terminos'); return false;">Términos de Servicio</a></p>
             </div>
         </div>
         <div class="footer-bottom">
@@ -223,7 +219,7 @@
                 <h2>Iniciar Sesión</h2>
                 <p>Accede a tu cuenta de MediTurnos</p>
             </div>
-            <form class="login-form" onsubmit="handleLogin(event)">
+            <form class="login-form">
                 <div class="form-group">
                     <label for="email">Correo Electrónico</label>
                     <input type="email" id="email" name="email" class="form-control" required>
@@ -238,7 +234,7 @@
                         Iniciar Sesión
                     </button>
                     <div class="login-link">
-                        ¿No tienes cuenta? <a href="#" onclick="switchToRegister()">Regístrate aquí</a>
+                        ¿No tienes cuenta? <a href="#" onclick="switchToRegister(event); return false;">Regístrate aquí</a>
                     </div>
                 </div>
             </form>
@@ -303,7 +299,7 @@
 
                     <div class="login-link">
                         ¿Ya tienes cuenta?
-                        <a href="#" onclick="switchToLogin()">Inicia sesión aquí</a>
+                        <a href="#" onclick="switchToLogin(event); return false;">Inicia sesión aquí</a>
                     </div>
                 </div>
             </form>

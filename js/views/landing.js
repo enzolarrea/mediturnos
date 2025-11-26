@@ -8,6 +8,7 @@ import { Router } from '../modules/router.js';
 import { StorageManager } from '../modules/storage.js';
 import { ApiClient } from '../modules/api.js';
 import { FormValidator } from '../components/form.js';
+import { ModalManager } from '../components/modals.js';
 
 class LandingView {
     constructor() {
@@ -20,11 +21,22 @@ class LandingView {
         this.setupModals();
         this.setupForms();
         this.setupNavigation();
+        // Asegurar que ModalManager esté disponible globalmente
+        if (!window.ModalManager) {
+            window.ModalManager = ModalManager;
+        }
     }
 
     setupModals() {
         // Funciones globales para modales
         window.openLoginModal = () => {
+            // Asegurar que el modal de registro esté cerrado
+            const registerModal = document.getElementById('registerModal');
+            if (registerModal) {
+                registerModal.classList.remove('active');
+            }
+            
+            // Abrir modal de login
             const modal = document.getElementById('loginModal');
             if (modal) {
                 modal.classList.add('active');
@@ -41,12 +53,30 @@ class LandingView {
         };
 
         window.openRegisterModal = () => {
+            // Asegurar que el modal de login esté cerrado
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal) {
+                loginModal.classList.remove('active');
+            }
+            
+            // Abrir modal de registro
             const modal = document.getElementById('registerModal');
             if (modal) {
                 modal.classList.add('active');
                 document.body.classList.add('modal-open');
                 // Configurar formateo cuando se abre el modal
-                setTimeout(() => this.setupFormatting(), 100);
+                setTimeout(() => {
+                    // Llamar a setupFormatting de forma segura
+                    if (typeof this.setupFormatting === 'function') {
+                        this.setupFormatting();
+                    } else {
+                        // Si this no está disponible, buscar la instancia o llamar directamente
+                        const landingView = window.landingViewInstance;
+                        if (landingView && typeof landingView.setupFormatting === 'function') {
+                            landingView.setupFormatting();
+                        }
+                    }
+                }, 100);
             }
         };
 
@@ -58,14 +88,26 @@ class LandingView {
             }
         };
 
-        window.switchToRegister = () => {
-            this.closeLoginModal();
-            setTimeout(() => this.openRegisterModal(), 300);
+        window.switchToRegister = (e) => {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            window.closeLoginModal();
+            setTimeout(() => {
+                window.openRegisterModal();
+            }, 150); // Reducido para transición más rápida
         };
 
-        window.switchToLogin = () => {
-            this.closeRegisterModal();
-            setTimeout(() => this.openLoginModal(), 300);
+        window.switchToLogin = (e) => {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            window.closeRegisterModal();
+            setTimeout(() => {
+                window.openLoginModal();
+            }, 150); // Reducido para transición más rápida
         };
 
         // Cerrar modales al hacer clic fuera
@@ -449,14 +491,14 @@ class LandingView {
 // Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        new LandingView();
+        window.landingViewInstance = new LandingView();
         // Cargar utilidades de debug
         import('../utils/debug.js').then(() => {
             console.log('Utilidades de debug cargadas. Usa checkStorage() o reinitStorage() en la consola.');
         });
     });
 } else {
-    new LandingView();
+    window.landingViewInstance = new LandingView();
     // Cargar utilidades de debug
     import('../utils/debug.js').then(() => {
         console.log('Utilidades de debug cargadas. Usa checkStorage() o reinitStorage() en la consola.');

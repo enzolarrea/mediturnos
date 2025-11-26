@@ -45,10 +45,10 @@ class SecretarioDashboard {
         });
     }
 
-    loadDashboard() {
+    async loadDashboard() {
         const hoy = new Date().toISOString().split('T')[0];
-        const turnosHoy = TurnosManager.getTurnosDelDia(hoy);
-        const pacientes = PacientesManager.getAll({ activo: true });
+        const turnosHoy = await TurnosManager.getTurnosDelDia(hoy);
+        const pacientes = await PacientesManager.getAll({ activo: true });
 
         document.getElementById('stats-grid').innerHTML = `
             <div class="stat-card">
@@ -71,9 +71,21 @@ class SecretarioDashboard {
         if (turnosHoy.length === 0) {
             turnosHoyDiv.innerHTML = '<p class="text-center">No hay turnos programados para hoy</p>';
         } else {
+            // Obtener pacientes y médicos de forma async
+            const pacientesMap = {};
+            const medicosMap = {};
+            for (const t of turnosHoy) {
+                if (t.pacienteId && !pacientesMap[t.pacienteId]) {
+                    pacientesMap[t.pacienteId] = await PacientesManager.getById(t.pacienteId);
+                }
+                if (t.medicoId && !medicosMap[t.medicoId]) {
+                    medicosMap[t.medicoId] = await MedicosManager.getById(t.medicoId);
+                }
+            }
+            
             turnosHoyDiv.innerHTML = turnosHoy.map(t => {
-                const paciente = PacientesManager.getById(t.pacienteId);
-                const medico = MedicosManager.getById(t.medicoId);
+                const paciente = pacientesMap[t.pacienteId];
+                const medico = medicosMap[t.medicoId];
                 return `<div style="padding: var(--spacing-md); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
                     <div><strong>${t.hora}</strong> - ${paciente ? paciente.nombre + ' ' + paciente.apellido : 'N/A'} - ${medico ? medico.nombre : 'N/A'}</div>
                     <span class="badge badge-${t.estado === 'confirmado' ? 'success' : 'warning'}">${t.estado}</span>
@@ -82,8 +94,8 @@ class SecretarioDashboard {
         }
     }
 
-    loadTurnos() {
-        const turnos = TurnosManager.getAll();
+    async loadTurnos() {
+        const turnos = await TurnosManager.getAll();
         const table = document.getElementById('turnos-table');
         if (!table) return;
         
@@ -92,9 +104,21 @@ class SecretarioDashboard {
             return;
         }
 
+        // Obtener pacientes y médicos de forma async
+        const pacientesMap = {};
+        const medicosMap = {};
+        for (const t of turnos) {
+            if (t.pacienteId && !pacientesMap[t.pacienteId]) {
+                pacientesMap[t.pacienteId] = await PacientesManager.getById(t.pacienteId);
+            }
+            if (t.medicoId && !medicosMap[t.medicoId]) {
+                medicosMap[t.medicoId] = await MedicosManager.getById(t.medicoId);
+            }
+        }
+
         table.innerHTML = turnos.map(t => {
-            const paciente = PacientesManager.getById(t.pacienteId);
-            const medico = MedicosManager.getById(t.medicoId);
+            const paciente = pacientesMap[t.pacienteId];
+            const medico = medicosMap[t.medicoId];
             return `<div class="card" style="margin-bottom: var(--spacing-md);">
                 <div class="card-body">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -113,8 +137,8 @@ class SecretarioDashboard {
         }).join('');
     }
 
-    loadPacientes() {
-        const pacientes = PacientesManager.getAll({ activo: true });
+    async loadPacientes() {
+        const pacientes = await PacientesManager.getAll({ activo: true });
         const list = document.getElementById('pacientes-list');
         if (!list) return;
         
@@ -160,7 +184,7 @@ window.logout = async function() {
 };
 
 window.editTurno = async function(id) {
-    const turno = TurnosManager.getById(id);
+    const turno = await TurnosManager.getById(id);
     if (!turno) {
         NotificationManager.error('Turno no encontrado');
         return;
@@ -180,16 +204,19 @@ window.cancelTurno = async function(id) {
     await window.ModalManager.confirm(
         'Cancelar Turno',
         '¿Estás seguro de que deseas cancelar este turno?',
-        () => {
-            const result = TurnosManager.cancel(id);
-            if (result.success) {
+        async () => {
+            const result = await TurnosManager.cancel(id);
+            if (result && result.success) {
                 NotificationManager.success('Turno cancelado exitosamente');
                 if (window.dashboard) {
-                    window.dashboard.loadTurnos();
-                    window.dashboard.loadDashboard();
+                    await window.dashboard.loadTurnos();
+                    await window.dashboard.loadDashboard();
                 } else {
-                    new SecretarioDashboard().loadTurnos();
+                    const dashboard = new SecretarioDashboard();
+                    await dashboard.loadTurnos();
                 }
+            } else {
+                NotificationManager.error(result?.message || 'Error al cancelar el turno');
             }
         }
     );

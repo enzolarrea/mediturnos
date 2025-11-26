@@ -245,40 +245,46 @@ class AdminDashboard {
         `;
     }
 
-    loadMedicos() {
-        const medicos = MedicosManager.getAll({ activo: true });
+    async loadMedicos() {
         const grid = document.getElementById('medicos-grid');
         if (!grid) return;
 
-        if (medicos.length === 0) {
-            grid.innerHTML = '<p class="text-center">No hay médicos registrados</p>';
-            return;
-        }
+        try {
+            const medicos = await MedicosManager.getAll({ activo: true });
 
-        grid.innerHTML = `
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--spacing-lg);">
-                ${medicos.map(m => `
-                    <div class="card">
-                        <div class="card-body">
-                            <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-md);">
-                                <div style="width: 50px; height: 50px; background: var(--medical-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-                                    <i class="fas fa-user-md"></i>
+            if (medicos.length === 0) {
+                grid.innerHTML = '<p class="text-center">No hay médicos registrados</p>';
+                return;
+            }
+
+            grid.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--spacing-lg);">
+                    ${medicos.map(m => `
+                        <div class="card">
+                            <div class="card-body">
+                                <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-md);">
+                                    <div style="width: 50px; height: 50px; background: var(--medical-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                                        <i class="fas fa-user-md"></i>
+                                    </div>
+                                    <div>
+                                        <h4 style="margin: 0;">${m.nombre}</h4>
+                                        <p style="margin: 0; font-size: var(--font-size-sm); color: var(--text-secondary);">${m.especialidad}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 style="margin: 0;">${m.nombre}</h4>
-                                    <p style="margin: 0; font-size: var(--font-size-sm); color: var(--text-secondary);">${m.especialidad}</p>
-                                </div>
+                                <p style="font-size: var(--font-size-sm); margin-bottom: var(--spacing-sm);"><i class="fas fa-id-card"></i> Matrícula: ${m.matricula}</p>
+                                <p style="font-size: var(--font-size-sm); margin-bottom: var(--spacing-md);"><i class="fas fa-clock"></i> ${m.horario}</p>
+                                <button class="btn-secondary btn-sm" onclick="editMedico(${m.id})">
+                                    <i class="fas fa-edit"></i> Editar
+                                </button>
                             </div>
-                            <p style="font-size: var(--font-size-sm); margin-bottom: var(--spacing-sm);"><i class="fas fa-id-card"></i> Matrícula: ${m.matricula}</p>
-                            <p style="font-size: var(--font-size-sm); margin-bottom: var(--spacing-md);"><i class="fas fa-clock"></i> ${m.horario}</p>
-                            <button class="btn-secondary btn-sm" onclick="editMedico(${m.id})">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
                         </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
+                    `).join('')}
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error al cargar médicos:', error);
+            grid.innerHTML = '<p class="text-center text-error">Error al cargar los médicos</p>';
+        }
     }
 
     loadUsuarios() {

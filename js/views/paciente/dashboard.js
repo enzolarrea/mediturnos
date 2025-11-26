@@ -349,19 +349,82 @@ class PacienteDashboard {
         }
     }
 
-    loadPerfil() {
-        if (!this.paciente) return;
+    async loadPerfil() {
+        // Recargar datos del usuario desde la API para asegurar datos actualizados
+        const { ApiClient } = await import('../../modules/api.js');
+        
+        if (this.user && this.user.id) {
+            try {
+                // Cargar datos completos del usuario (usuario + paciente)
+                const datosCompletos = await ApiClient.getUsuarioCompleto(this.user.id);
+                if (datosCompletos) {
+                    this.paciente = datosCompletos;
+                } else if (this.user.pacienteId) {
+                    // Fallback: cargar desde pacientes si no se puede cargar desde usuarios
+                    this.paciente = await PacientesManager.getById(this.user.pacienteId);
+                }
+            } catch (error) {
+                console.error('Error al cargar datos del usuario:', error);
+                // Fallback: intentar cargar desde pacientes
+                if (this.user.pacienteId) {
+                    this.paciente = await PacientesManager.getById(this.user.pacienteId);
+                }
+            }
+        }
+        
+        if (!this.paciente) {
+            const content = document.getElementById('perfil-content');
+            if (content) {
+                content.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="text-error">No se pudo cargar la información del usuario</p>
+                        </div>
+                    </div>
+                `;
+            }
+            return;
+        }
+        
         const content = document.getElementById('perfil-content');
         if (!content) return;
+        
+        // Formatear fecha de nacimiento si existe
+        let fechaNacimientoFormateada = 'No especificada';
+        if (this.paciente.fechaNacimiento) {
+            try {
+                const fecha = new Date(this.paciente.fechaNacimiento);
+                fechaNacimientoFormateada = fecha.toLocaleDateString('es-AR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch (e) {
+                fechaNacimientoFormateada = this.paciente.fechaNacimiento;
+            }
+        }
         
         content.innerHTML = `
             <div class="card">
                 <div class="card-body">
                     <h4>Datos Personales</h4>
-                    <p><strong>Nombre:</strong> ${this.paciente.nombre} ${this.paciente.apellido}</p>
-                    <p><strong>DNI:</strong> ${this.paciente.dni}</p>
-                    <p><strong>Teléfono:</strong> ${this.paciente.telefono}</p>
-                    <p><strong>Email:</strong> ${this.user.email}</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                        <div>
+                            <p><strong>Nombre:</strong> ${this.paciente.nombre || 'N/A'}</p>
+                            <p><strong>Apellido:</strong> ${this.paciente.apellido || 'N/A'}</p>
+                            <p><strong>DNI:</strong> ${this.paciente.dni || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p><strong>Teléfono:</strong> ${this.paciente.telefono || 'N/A'}</p>
+                            <p><strong>Email:</strong> ${this.paciente.email || this.user.email || 'N/A'}</p>
+                            <p><strong>Fecha de Nacimiento:</strong> ${fechaNacimientoFormateada}</p>
+                        </div>
+                        ${this.paciente.direccion ? `
+                        <div>
+                            <p><strong>Dirección:</strong> ${this.paciente.direccion}</p>
+                        </div>
+                        ` : ''}
+                    </div>
                     <button class="btn-primary" onclick="editarPerfil()">
                         <i class="fas fa-edit"></i> Editar Perfil
                     </button>
@@ -432,21 +495,15 @@ window.editarPerfil = async function() {
         const { ModalManager } = await import('../../components/modals.js');
         window.ModalManager = ModalManager;
     }
-    const { PacientesManager } = await import('../../modules/pacientes.js');
     
     const user = AuthManager.getCurrentUser();
-    if (!user || !user.pacienteId) {
-        NotificationManager.error('No se encontró información del paciente');
+    if (!user || !user.id) {
+        NotificationManager.error('No se encontró información del usuario');
         return;
     }
     
-    const paciente = PacientesManager.getById(user.pacienteId);
-    if (!paciente) {
-        NotificationManager.error('Paciente no encontrado');
-        return;
-    }
-    
-    await window.ModalManager.openPacienteModal(paciente);
+    // Pasar el userId para que el modal cargue los datos actuales desde la API (usuarios)
+    await window.ModalManager.openPacienteModal(null, null, user.id);
 };
 
 // Inicializar dashboard cuando el DOM esté listo

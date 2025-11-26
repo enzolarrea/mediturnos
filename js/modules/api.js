@@ -212,6 +212,16 @@ export class ApiClient {
         return Array.isArray(response.data) ? response.data : response;
     }
 
+    static async createMedico(medicoData) {
+        const response = await this.post('/medico', medicoData);
+        return response.medico;
+    }
+
+    static async updateMedico(id, medicoData) {
+        const response = await this.put(`/medico/${id}`, medicoData);
+        return response.medico;
+    }
+
     // ============================================
     // ENDPOINTS DE PACIENTES
     // ============================================
@@ -229,6 +239,65 @@ export class ApiClient {
     static async getPacienteHistorial(id) {
         const response = await this.get(`/paciente/${id}/historial`);
         return Array.isArray(response.data) ? response.data : response;
+    }
+
+    static async createPaciente(pacienteData) {
+        const response = await this.post('/paciente', pacienteData);
+        return response.paciente;
+    }
+
+    static async updatePaciente(id, pacienteData) {
+        const response = await this.put(`/paciente/${id}`, pacienteData);
+        return response.paciente;
+    }
+
+    // ============================================
+    // ENDPOINTS DE USUARIOS
+    // ============================================
+
+    static async getUsuarios(filters = {}) {
+        const response = await this.get('/usuario', filters);
+        return Array.isArray(response.data) ? response.data : response;
+    }
+
+    static async getUsuario(id) {
+        const response = await this.get(`/usuario/${id}`);
+        return response.user;
+    }
+
+    static async updateUsuario(id, usuarioData) {
+        const response = await this.put(`/usuario/${id}`, usuarioData);
+        return response.user;
+    }
+
+    /**
+     * Obtener datos completos del usuario actual (usuario + paciente si aplica)
+     */
+    static async getUsuarioCompleto(id) {
+        const usuario = await this.getUsuario(id);
+        if (!usuario) return null;
+        
+        // Si es paciente, obtener también datos del paciente
+        if (usuario.pacienteId) {
+            try {
+                const paciente = await this.getPaciente(usuario.pacienteId);
+                // Combinar datos: usuario tiene prioridad para nombre, apellido, email
+                return {
+                    ...paciente,
+                    ...usuario,
+                    // Mantener datos del paciente que no están en usuario
+                    dni: paciente.dni,
+                    telefono: paciente.telefono,
+                    direccion: paciente.direccion,
+                    fechaNacimiento: paciente.fechaNacimiento
+                };
+            } catch (error) {
+                console.error('Error al obtener datos del paciente:', error);
+                return usuario;
+            }
+        }
+        
+        return usuario;
     }
 }
 

@@ -12,13 +12,13 @@ class MedicoDashboard {
             return;
         }
         this.user = AuthManager.getCurrentUser();
-        this.medico = this.user.medicoId ? MedicosManager.getById(this.user.medicoId) : null;
+        this.medico = null; // Se cargará asíncronamente cuando sea necesario
         this.init();
     }
 
-    init() {
+    async init() {
         this.setupNavigation();
-        this.loadDashboard();
+        await this.loadDashboard();
     }
 
     setupNavigation() {
@@ -39,7 +39,16 @@ class MedicoDashboard {
         });
     }
 
-    loadDashboard() {
+    async loadDashboard() {
+        // Cargar médico desde la API si no está cargado
+        if (!this.medico && this.user && this.user.medicoId) {
+            try {
+                this.medico = await MedicosManager.getById(this.user.medicoId);
+            } catch (error) {
+                console.error('Error al cargar médico en dashboard:', error);
+            }
+        }
+        
         if (!this.medico) {
             NotificationManager.warning('No se encontró información del médico');
             return;
@@ -129,19 +138,85 @@ class MedicoDashboard {
         </div>`;
     }
 
-    loadDisponibilidad() {
+    async loadDisponibilidad() {
         const content = document.getElementById('disponibilidad-content');
-        if (!content || !this.medico) return;
+        if (!content) return;
+        
+        // Mostrar loading mientras se cargan los datos
+        content.innerHTML = `
+            <div class="card">
+                <div class="card-body" style="text-align: center; padding: var(--spacing-xl);">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                    <p style="margin-top: var(--spacing-md);">Cargando información...</p>
+                </div>
+            </div>
+        `;
+        
+        // Obtener usuario actual desde la API si no está disponible
+        if (!this.user || !this.user.medicoId) {
+            const { ApiClient } = await import('../../modules/api.js');
+            try {
+                this.user = await ApiClient.getCurrentUser();
+                if (!this.user) {
+                    // Fallback a localStorage
+                    this.user = AuthManager.getCurrentUser();
+                }
+            } catch (error) {
+                console.error('Error al obtener usuario desde API:', error);
+                // Fallback a localStorage
+                this.user = AuthManager.getCurrentUser();
+            }
+        }
+        
+        // Recargar datos del médico desde la API para asegurar datos actualizados
+        if (this.user && this.user.medicoId) {
+            try {
+                const medicoActualizado = await MedicosManager.getById(this.user.medicoId);
+                if (medicoActualizado) {
+                    this.medico = medicoActualizado;
+                }
+            } catch (error) {
+                console.error('Error al cargar médico:', error);
+            }
+        }
+        
+        if (!this.medico) {
+            content.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <p class="text-error">No se pudo cargar la información del médico</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        // Formatear especialidad
+        const especialidad = this.medico.especialidad || 
+                           (this.medico.especialidades 
+                               ? (Array.isArray(this.medico.especialidades) 
+                                   ? this.medico.especialidades.join(', ')
+                                   : this.medico.especialidades)
+                               : 'No especificada');
         
         content.innerHTML = `
             <div class="card">
                 <div class="card-body">
-                    <h4>Horario Actual</h4>
-                    <p>${this.medico.horario}</p>
-                    <h4>Especialidad</h4>
-                    <p>${this.medico.especialidad}</p>
+                    <h4>Información Profesional y Disponibilidad</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                        <div>
+                            <p><strong>Nombre:</strong> ${this.medico.nombre || 'N/A'}</p>
+                            <p><strong>Especialidad:</strong> ${especialidad || 'N/A'}</p>
+                            <p><strong>Matrícula:</strong> ${this.medico.matricula || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p><strong>Horario:</strong> ${this.medico.horario || 'No especificado'}</p>
+                            ${this.medico.telefono ? `<p><strong>Teléfono:</strong> ${this.medico.telefono}</p>` : ''}
+                            ${this.medico.email ? `<p><strong>Email:</strong> ${this.medico.email}</p>` : ''}
+                        </div>
+                    </div>
                     <button class="btn-primary" onclick="editarDisponibilidad()">
-                        <i class="fas fa-edit"></i> Editar Disponibilidad
+                        <i class="fas fa-edit"></i> Editar Información
                     </button>
                 </div>
             </div>
@@ -179,21 +254,45 @@ window.verHistorial = async function(id) {
 
 window.editarDisponibilidad = async function() {
     const { ModalManager } = await import('../../components/modals.js');
-    const { MedicosManager } = await import('../../modules/medicos.js');
+    const { ApiClient } = await import('../../modules/api.js');
     
-    const user = AuthManager.getCurrentUser();
-    if (!user || !user.medicoId) {
-        NotificationManager.error('No se encontró información del médico');
+    // Obtener usuario actual desde la API para asegurar datos actualizados
+    let user = null;
+    try {
+        user = await ApiClient.getCurrentUser();
+        if (!user) {
+            // Fallback a localStorage
+            user = AuthManager.getCurrentUser();
+        }
+    } catch (error) {
+        console.error('Error al obtener usuario desde API:', error);
+        // Fallback a localStorage
+        user = AuthManager.getCurrentUser();
+    }
+    
+    console.log('Usuario obtenido:', user);
+    console.log('Tipo de usuario:', typeof user);
+    console.log('medicoId del usuario:', user?.medicoId);
+    console.log('Tipo de medicoId:', typeof user?.medicoId);
+    
+    if (!user) {
+        NotificationManager.error('No se encontró información del usuario. Por favor, inicie sesión nuevamente.');
+        console.error('Usuario es null o undefined');
         return;
     }
     
-    const medico = MedicosManager.getById(user.medicoId);
-    if (!medico) {
-        NotificationManager.error('Médico no encontrado');
+    // Convertir medicoId a número si es necesario
+    const medicoId = user.medicoId ? parseInt(user.medicoId) : null;
+    
+    if (!medicoId || isNaN(medicoId)) {
+        NotificationManager.error('No se encontró información del médico. Por favor, inicie sesión nuevamente.');
+        console.error('Usuario sin medicoId válido:', user);
         return;
     }
     
-    await ModalManager.openMedicoModal(medico);
+    // Abrir modal pasando solo el medicoId - el modal cargará los datos desde la API
+    console.log('Abriendo modal con medicoId:', medicoId, '(tipo:', typeof medicoId, ')');
+    await ModalManager.openMedicoModal(null, medicoId);
 };
 
 const medicoDashboard = new MedicoDashboard();

@@ -49,72 +49,41 @@ export class MedicosManager {
         }
     }
 
-    static create(medicoData) {
-        const medicos = StorageManager.get(CONFIG.STORAGE.MEDICOS) || [];
-
-        // Validar matrícula única
-        if (medicos.find(m => m.matricula === medicoData.matricula)) {
-            return { success: false, message: 'Ya existe un médico con esta matrícula' };
+    static async create(medicoData) {
+        try {
+            const payload = {
+                ...medicoData,
+                // compat: si viene especialidad como string, backend la acepta
+            };
+            const medico = await ApiClient.post('/medico', payload);
+            // ApiClient.request devuelve el wrapper; extraer medico si es necesario
+            const medicoDataResp = medico.medico || medico;
+            return { success: true, medico: medicoDataResp };
+        } catch (error) {
+            console.error('Error al crear médico:', error);
+            return { success: false, message: error.message || 'Error al crear médico' };
         }
-
-        const newMedico = {
-            id: Date.now(),
-            nombre: medicoData.nombre,
-            especialidad: medicoData.especialidad,
-            matricula: medicoData.matricula,
-            horario: medicoData.horario || '',
-            email: medicoData.email || '',
-            telefono: medicoData.telefono || '',
-            activo: true,
-            disponibilidad: medicoData.disponibilidad || {},
-            fechaCreacion: new Date().toISOString()
-        };
-
-        medicos.push(newMedico);
-        StorageManager.set(CONFIG.STORAGE.MEDICOS, medicos);
-
-        return { success: true, medico: newMedico };
     }
 
-    static update(id, updates) {
-        const medicos = StorageManager.get(CONFIG.STORAGE.MEDICOS) || [];
-        const index = medicos.findIndex(m => m.id === parseInt(id));
-
-        if (index === -1) {
-            return { success: false, message: 'Médico no encontrado' };
+    static async update(id, updates) {
+        try {
+            const medico = await ApiClient.put(`/medico/${id}`, updates);
+            const medicoDataResp = medico.medico || medico;
+            return { success: true, medico: medicoDataResp };
+        } catch (error) {
+            console.error('Error al actualizar médico:', error);
+            return { success: false, message: error.message || 'Error al actualizar médico' };
         }
-
-        // Validar matrícula única si se cambia
-        if (updates.matricula && updates.matricula !== medicos[index].matricula) {
-            const existe = medicos.find(m => m.matricula === updates.matricula && m.id !== parseInt(id));
-            if (existe) {
-                return { success: false, message: 'Ya existe un médico con esta matrícula' };
-            }
-        }
-
-        medicos[index] = {
-            ...medicos[index],
-            ...updates,
-            fechaActualizacion: new Date().toISOString()
-        };
-
-        StorageManager.set(CONFIG.STORAGE.MEDICOS, medicos);
-        return { success: true, medico: medicos[index] };
     }
 
-    static delete(id) {
-        const medicos = StorageManager.get(CONFIG.STORAGE.MEDICOS) || [];
-        const index = medicos.findIndex(m => m.id === parseInt(id));
-
-        if (index === -1) {
-            return { success: false, message: 'Médico no encontrado' };
+    static async delete(id) {
+        try {
+            await ApiClient.delete(`/medico/${id}`);
+            return { success: true };
+        } catch (error) {
+            console.error('Error al eliminar médico:', error);
+            return { success: false, message: error.message || 'Error al eliminar médico' };
         }
-
-        // Soft delete
-        medicos[index].activo = false;
-        StorageManager.set(CONFIG.STORAGE.MEDICOS, medicos);
-
-        return { success: true };
     }
 
     static async getDisponibilidad(id, fecha) {
@@ -143,9 +112,14 @@ export class MedicosManager {
     }
 
     static getEspecialidades() {
-        const medicos = this.getAll({ activo: true });
-        const especialidades = [...new Set(medicos.map(m => m.especialidad))];
-        return especialidades.sort();
+        // Nota: método legacy; idealmente usar API específica de especialidades
+        console.warn('MedicosManager.getEspecialidades() usa getAll(); considerar migrar a API /medico/especialidades');
+        const medicosPromise = this.getAll({ activo: true });
+        // Devolver promesa para compatibilidad
+        return medicosPromise.then(medicos => {
+            const especialidades = [...new Set(medicos.map(m => m.especialidad))];
+            return especialidades.sort();
+        });
     }
 }
 

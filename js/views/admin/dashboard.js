@@ -73,7 +73,7 @@ class AdminDashboard {
         const turnos = await TurnosManager.getAll();
         const pacientes = await PacientesManager.getAll();
         const medicos = await MedicosManager.getAll();
-        const usuarios = UsuariosManager.getAll(); // TODO: migrar a API
+        const usuarios = await UsuariosManager.getAll();
         
         const hoy = new Date().toISOString().split('T')[0];
         const turnosHoy = turnos.filter(t => t.fecha === hoy && t.estado !== 'cancelado');
@@ -281,8 +281,8 @@ class AdminDashboard {
         `;
     }
 
-    loadUsuarios() {
-        const usuarios = UsuariosManager.getAll({ activo: true }); // aún basado en localStorage
+    async loadUsuarios() {
+        const usuarios = await UsuariosManager.getAll({ activo: true });
         const table = document.getElementById('usuarios-table');
         if (!table) return;
 
@@ -477,7 +477,7 @@ window.cancelTurno = async function(id) {
 };
 
 window.editPaciente = async function(id) {
-    const paciente = PacientesManager.getById(id);
+    const paciente = await PacientesManager.getById(id);
     if (!paciente) {
         NotificationManager.error('Paciente no encontrado');
         return;
@@ -498,7 +498,7 @@ window.verHistorial = async function(id) {
 };
 
 window.editMedico = async function(id) {
-    const medico = MedicosManager.getById(id);
+    const medico = await MedicosManager.getById(id);
     if (!medico) {
         NotificationManager.error('Médico no encontrado');
         return;
@@ -511,7 +511,7 @@ window.editMedico = async function(id) {
 };
 
 window.editUsuario = async function(id) {
-    const usuario = UsuariosManager.getById(id);
+    const usuario = await UsuariosManager.getById(id);
     if (!usuario) {
         NotificationManager.error('Usuario no encontrado');
         return;

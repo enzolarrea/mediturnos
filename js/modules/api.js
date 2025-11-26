@@ -230,5 +230,55 @@ export class ApiClient {
         const response = await this.get(`/paciente/${id}/historial`);
         return Array.isArray(response.data) ? response.data : response;
     }
+
+    static async createPaciente(pacienteData) {
+        const response = await this.post('/paciente', pacienteData);
+        return response.paciente;
+    }
+
+    static async updatePaciente(id, pacienteData) {
+        const response = await this.put(`/paciente/${id}`, pacienteData);
+        return response.paciente;
+    }
+
+    static async deletePaciente(id) {
+        return this.delete(`/paciente/${id}`);
+    }
+
+    // ============================================
+    // ENDPOINTS DE USUARIOS
+    // ============================================
+
+    static async getUsuarios(filters = {}) {
+        const response = await this.get('/usuario', filters);
+        return Array.isArray(response.data) ? response.data : response;
+    }
+
+    static async getUsuario(id) {
+        const response = await this.get(`/usuario/${id}`);
+        return response.user;
+    }
+
+    static async createUsuario(usuarioData) {
+        const response = await this.post('/usuario', usuarioData);
+        return response.user;
+    }
+
+    static async updateUsuario(id, usuarioData) {
+        const response = await this.put(`/usuario/${id}`, usuarioData);
+        return response.user;
+    }
+
+    static async deleteUsuario(id) {
+        return this.delete(`/usuario/${id}`);
+    }
+
+    static async changeUsuarioPassword(id, oldPassword, newPassword) {
+        const response = await this.post(`/usuario/${id}/change-password`, {
+            oldPassword,
+            newPassword
+        });
+        return response;
+    }
 }
 

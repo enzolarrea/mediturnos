@@ -8,7 +8,8 @@ import { Router } from '../modules/router.js';
 import { StorageManager } from '../modules/storage.js';
 import { ApiClient } from '../modules/api.js';
 import { FormValidator } from '../components/form.js';
-import { ModalManager } from '../components/modals.js';
+import { setupDniFormatter } from '../utils/formatters.js';
+import '../components/modals.js';
 
 class LandingView {
     constructor() {
@@ -21,22 +22,12 @@ class LandingView {
         this.setupModals();
         this.setupForms();
         this.setupNavigation();
-        // Asegurar que ModalManager esté disponible globalmente
-        if (!window.ModalManager) {
-            window.ModalManager = ModalManager;
-        }
+        this.loadHeroStats();
     }
 
     setupModals() {
         // Funciones globales para modales
         window.openLoginModal = () => {
-            // Asegurar que el modal de registro esté cerrado
-            const registerModal = document.getElementById('registerModal');
-            if (registerModal) {
-                registerModal.classList.remove('active');
-            }
-            
-            // Abrir modal de login
             const modal = document.getElementById('loginModal');
             if (modal) {
                 modal.classList.add('active');
@@ -53,30 +44,12 @@ class LandingView {
         };
 
         window.openRegisterModal = () => {
-            // Asegurar que el modal de login esté cerrado
-            const loginModal = document.getElementById('loginModal');
-            if (loginModal) {
-                loginModal.classList.remove('active');
-            }
-            
-            // Abrir modal de registro
             const modal = document.getElementById('registerModal');
             if (modal) {
                 modal.classList.add('active');
                 document.body.classList.add('modal-open');
                 // Configurar formateo cuando se abre el modal
-                setTimeout(() => {
-                    // Llamar a setupFormatting de forma segura
-                    if (typeof this.setupFormatting === 'function') {
-                        this.setupFormatting();
-                    } else {
-                        // Si this no está disponible, buscar la instancia o llamar directamente
-                        const landingView = window.landingViewInstance;
-                        if (landingView && typeof landingView.setupFormatting === 'function') {
-                            landingView.setupFormatting();
-                        }
-                    }
-                }, 100);
+                setTimeout(() => this.setupFormatting(), 100);
             }
         };
 
@@ -88,26 +61,14 @@ class LandingView {
             }
         };
 
-        window.switchToRegister = (e) => {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            window.closeLoginModal();
-            setTimeout(() => {
-                window.openRegisterModal();
-            }, 150); // Reducido para transición más rápida
+        window.switchToRegister = () => {
+            this.closeLoginModal();
+            setTimeout(() => this.openRegisterModal(), 300);
         };
 
-        window.switchToLogin = (e) => {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            window.closeRegisterModal();
-            setTimeout(() => {
-                window.openLoginModal();
-            }, 150); // Reducido para transición más rápida
+        window.switchToLogin = () => {
+            this.closeRegisterModal();
+            setTimeout(() => this.openLoginModal(), 300);
         };
 
         // Cerrar modales al hacer clic fuera
@@ -144,80 +105,10 @@ class LandingView {
     }
 
     setupFormatting() {
-        // DNI - Formateo automático
+        // DNI - Formateo automático (compartido con otras vistas)
         const dniInput = document.getElementById('regDNI');
         if (dniInput) {
-            // Prevenir letras y caracteres no numéricos
-            dniInput.addEventListener('keydown', (e) => {
-                // Permitir teclas de control
-                if (e.ctrlKey || e.metaKey || 
-                    ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
-                    return;
-                }
-                // Permitir Ctrl+V (se manejará en paste)
-                if ((e.key === 'v' || e.key === 'V') && (e.ctrlKey || e.metaKey)) {
-                    return;
-                }
-                // Solo permitir números
-                if (!/^\d$/.test(e.key)) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-
-            // Formatear en tiempo real
-            dniInput.addEventListener('input', (e) => {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 8) value = value.substring(0, 8);
-                
-                let formatted = '';
-                if (value.length > 0) {
-                    if (value.length <= 2) {
-                        formatted = value;
-                    } else if (value.length <= 5) {
-                        formatted = value.substring(0, 2) + '.' + value.substring(2);
-                    } else {
-                        formatted = value.substring(0, 2) + '.' + value.substring(2, 5) + '.' + value.substring(5);
-                    }
-                }
-                
-                const cursorPos = e.target.selectionStart;
-                e.target.value = formatted;
-                
-                // Ajustar posición del cursor
-                let newPos = formatted.length;
-                if (cursorPos <= 2) {
-                    newPos = cursorPos;
-                } else if (cursorPos <= 5) {
-                    newPos = cursorPos + 1;
-                } else {
-                    newPos = cursorPos + 2;
-                }
-                if (newPos > formatted.length) newPos = formatted.length;
-                if (formatted[newPos] === '.') newPos++;
-                
-                e.target.setSelectionRange(newPos, newPos);
-            });
-
-            // Manejar pegado
-            dniInput.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const paste = (e.clipboardData || window.clipboardData).getData('text');
-                const numbers = paste.replace(/\D/g, '').substring(0, 8);
-                
-                let formatted = '';
-                if (numbers.length > 0) {
-                    if (numbers.length <= 2) {
-                        formatted = numbers;
-                    } else if (numbers.length <= 5) {
-                        formatted = numbers.substring(0, 2) + '.' + numbers.substring(2);
-                    } else {
-                        formatted = numbers.substring(0, 2) + '.' + numbers.substring(2, 5) + '.' + numbers.substring(5);
-                    }
-                }
-                e.target.value = formatted;
-                e.target.setSelectionRange(formatted.length, formatted.length);
-            });
+            setupDniFormatter(dniInput);
         }
 
         // Fecha - Formateo automático
@@ -486,19 +377,55 @@ class LandingView {
             }
         };
     }
+
+    async loadHeroStats() {
+        const turnosEl = document.getElementById('hero-turnos-hoy');
+        const pacientesEl = document.getElementById('hero-pacientes-activos');
+        const medicosEl = document.getElementById('hero-medicos-activos');
+
+        // Si no estamos en el landing (o el bloque no existe), salir silenciosamente
+        if (!turnosEl || !pacientesEl || !medicosEl) return;
+
+        // Estado de carga inicial
+        turnosEl.textContent = '...';
+        pacientesEl.textContent = '...';
+        medicosEl.textContent = '...';
+
+        try {
+            // Turnos de hoy
+            const hoy = new Date().toISOString().split('T')[0];
+            const turnosHoy = await ApiClient.getTurnosDelDia(hoy);
+
+            // Pacientes activos
+            const pacientes = await ApiClient.getPacientes({ activo: true });
+
+            // Médicos activos
+            const medicos = await ApiClient.getMedicos({ activo: true });
+
+            turnosEl.textContent = Array.isArray(turnosHoy) ? turnosHoy.length : (turnosHoy?.length || 0);
+            pacientesEl.textContent = Array.isArray(pacientes) ? pacientes.length : (pacientes?.length || 0);
+            medicosEl.textContent = Array.isArray(medicos) ? medicos.length : (medicos?.length || 0);
+        } catch (error) {
+            console.error('Error al cargar estadísticas del hero:', error);
+            // Fallback visual en caso de error
+            turnosEl.textContent = '—';
+            pacientesEl.textContent = '—';
+            medicosEl.textContent = '—';
+        }
+    }
 }
 
 // Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        window.landingViewInstance = new LandingView();
+        new LandingView();
         // Cargar utilidades de debug
         import('../utils/debug.js').then(() => {
             console.log('Utilidades de debug cargadas. Usa checkStorage() o reinitStorage() en la consola.');
         });
     });
 } else {
-    window.landingViewInstance = new LandingView();
+    new LandingView();
     // Cargar utilidades de debug
     import('../utils/debug.js').then(() => {
         console.log('Utilidades de debug cargadas. Usa checkStorage() o reinitStorage() en la consola.');

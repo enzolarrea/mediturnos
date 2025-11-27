@@ -188,10 +188,6 @@ class Medico {
             // Actualizar especialidades si se proporcionan
             if (isset($data['especialidades'])) {
                 $this->setEspecialidades($id, $data['especialidades']);
-            } elseif (isset($data['especialidad'])) {
-                // Compatibilidad: si viene como string, buscar o crear
-                $especialidadId = $this->getOrCreateEspecialidad($data['especialidad']);
-                $this->setEspecialidades($id, [$especialidadId]);
             }
 
             // Actualizar disponibilidad si se proporciona

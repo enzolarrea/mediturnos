@@ -247,14 +247,14 @@
     font-size: var(--font-size-3xl);
     font-weight: 700;
     margin-bottom: var(--spacing-lg);
-    color: rgb(165, 169, 202);
+    color:white;
 }
 
 .cta-description {
     font-size: var(--font-size-lg);
     margin-bottom: var(--spacing-xl);
     opacity: 0.9;
-    color: white;
+    color:white;
 }
 
 .cta-actions {

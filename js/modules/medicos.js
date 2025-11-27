@@ -51,75 +51,38 @@ export class MedicosManager {
 
     static async create(medicoData) {
         try {
-            // Usar la API para crear
-            const medico = await ApiClient.createMedico(medicoData);
-            
-            if (medico) {
-                // Normalizar datos de respuesta
-                const medicoNormalizado = {
-                    ...medico,
-                    especialidad: medico.especialidades || medico.especialidad || '',
-                    especialidades: medico.especialidades ? 
-                        (typeof medico.especialidades === 'string' 
-                            ? medico.especialidades.split(', ') 
-                            : medico.especialidades) 
-                        : [medico.especialidad || '']
-                };
-                
-                return { success: true, medico: medicoNormalizado };
-            } else {
-                return { success: false, message: 'No se pudo crear el médico' };
-            }
+            const payload = {
+                ...medicoData,
+                // compat: si viene especialidad como string, backend la acepta
+            };
+            const medico = await ApiClient.post('/medico', payload);
+            // ApiClient.request devuelve el wrapper; extraer medico si es necesario
+            const medicoDataResp = medico.medico || medico;
+            return { success: true, medico: medicoDataResp };
         } catch (error) {
             console.error('Error al crear médico:', error);
-            return { 
-                success: false, 
-                message: error.message || 'Error al crear el médico. Intente más tarde.' 
-            };
+            return { success: false, message: error.message || 'Error al crear médico' };
         }
     }
 
     static async update(id, updates) {
         try {
-            // Usar la API para actualizar
-            const medico = await ApiClient.updateMedico(id, updates);
-            
-            if (medico) {
-                // Normalizar datos de respuesta
-                const medicoNormalizado = {
-                    ...medico,
-                    especialidad: medico.especialidades || medico.especialidad || '',
-                    especialidades: medico.especialidades ? 
-                        (typeof medico.especialidades === 'string' 
-                            ? medico.especialidades.split(', ') 
-                            : medico.especialidades) 
-                        : [medico.especialidad || '']
-                };
-                
-                return { success: true, medico: medicoNormalizado };
-            } else {
-                return { success: false, message: 'No se pudo actualizar el médico' };
-            }
+            const medico = await ApiClient.put(`/medico/${id}`, updates);
+            const medicoDataResp = medico.medico || medico;
+            return { success: true, medico: medicoDataResp };
         } catch (error) {
             console.error('Error al actualizar médico:', error);
-            return { 
-                success: false, 
-                message: error.message || 'Error al actualizar el médico. Intente más tarde.' 
-            };
+            return { success: false, message: error.message || 'Error al actualizar médico' };
         }
     }
 
     static async delete(id) {
         try {
-            // Usar la API para eliminar (soft delete)
             await ApiClient.delete(`/medico/${id}`);
             return { success: true };
         } catch (error) {
             console.error('Error al eliminar médico:', error);
-            return { 
-                success: false, 
-                message: error.message || 'Error al eliminar el médico. Intente más tarde.' 
-            };
+            return { success: false, message: error.message || 'Error al eliminar médico' };
         }
     }
 
@@ -148,15 +111,15 @@ export class MedicosManager {
         }
     }
 
-    static async getEspecialidades() {
-        try {
-            const medicos = await this.getAll({ activo: true });
-            const especialidades = [...new Set(medicos.map(m => m.especialidad).filter(e => e))];
+    static getEspecialidades() {
+        // Nota: método legacy; idealmente usar API específica de especialidades
+        console.warn('MedicosManager.getEspecialidades() usa getAll(); considerar migrar a API /medico/especialidades');
+        const medicosPromise = this.getAll({ activo: true });
+        // Devolver promesa para compatibilidad
+        return medicosPromise.then(medicos => {
+            const especialidades = [...new Set(medicos.map(m => m.especialidad))];
             return especialidades.sort();
-        } catch (error) {
-            console.error('Error al obtener especialidades:', error);
-            return [];
-        }
+        });
     }
 }
 

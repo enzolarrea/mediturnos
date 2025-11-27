@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar -->
@@ -55,16 +57,20 @@
                 </div>
 
                 <div class="header-right">
+                    <!-- Barra de busqueda
                     <div class="search-box">
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Buscar...">
                     </div>
+                    -->
 
                     <div class="header-actions">
+                        <!-- Notificaciones
                         <button class="btn-icon" title="Notificaciones">
                             <i class="fas fa-bell"></i>
                             <span class="notification-badge" id="notification-count">0</span>
                         </button>
+                        -->
                         <button class="btn-icon" title="Cerrar Sesión" onclick="logout()">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
@@ -86,8 +92,8 @@
     <script type="module">
         import { AuthManager } from '../js/modules/auth.js';
         import { Router } from '../js/modules/router.js';
-        
-        window.logout = function() {
+
+        window.logout = function () {
             if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
                 AuthManager.logout();
                 window.location.href = '../landing.html';
@@ -96,5 +102,5 @@
     </script>
     <script type="module" src="../js/app.js"></script>
 </body>
-</html>
 
+</html>

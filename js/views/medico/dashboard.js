@@ -4,6 +4,7 @@ import { PacientesManager } from '../../modules/pacientes.js';
 import { MedicosManager } from '../../modules/medicos.js';
 import { NotificationManager } from '../../modules/notifications.js';
 import { CONFIG } from '../../config.js';
+import { formatDateToDMY, formatEstadoNombre } from '../../utils/formatters.js';
 
 class MedicoDashboard {
     constructor() {
@@ -12,11 +13,22 @@ class MedicoDashboard {
             return;
         }
         this.user = AuthManager.getCurrentUser();
-        this.medico = null; // Se cargará asíncronamente cuando sea necesario
+        this.medico = null;
+        // Estado del calendario (mes/año actuales y caché de turnos)
+        this.calendarDate = new Date();
+        this.calendarData = {
+            turnos: [],
+            pacientes: [],
+            medicos: [],
+            turnosPorFecha: {}
+        };
         this.init();
     }
 
     async init() {
+        if (this.user && this.user.medicoId) {
+            this.medico = await MedicosManager.getById(this.user.medicoId);
+        }
         this.setupNavigation();
         await this.loadDashboard();
     }
@@ -32,6 +44,7 @@ class MedicoDashboard {
                     section.classList.add('active');
                     if (item.getAttribute('data-section') === 'dashboard') this.loadDashboard();
                     else if (item.getAttribute('data-section') === 'turnos') this.loadTurnos();
+                    else if (item.getAttribute('data-section') === 'calendario') this.loadCalendario();
                     else if (item.getAttribute('data-section') === 'pacientes') this.loadPacientes();
                     else if (item.getAttribute('data-section') === 'disponibilidad') this.loadDisponibilidad();
                 }
@@ -40,22 +53,13 @@ class MedicoDashboard {
     }
 
     async loadDashboard() {
-        // Cargar médico desde la API si no está cargado
-        if (!this.medico && this.user && this.user.medicoId) {
-            try {
-                this.medico = await MedicosManager.getById(this.user.medicoId);
-            } catch (error) {
-                console.error('Error al cargar médico en dashboard:', error);
-            }
-        }
-        
         if (!this.medico) {
             NotificationManager.warning('No se encontró información del médico');
             return;
         }
 
         const hoy = new Date().toISOString().split('T')[0];
-        const turnosHoy = TurnosManager.getAll({ medicoId: this.medico.id, fecha: hoy });
+        const turnosHoy = await TurnosManager.getAll({ medicoId: this.medico.id, fecha: hoy });
 
         document.getElementById('stats-grid').innerHTML = `
             <div class="stat-card">
@@ -78,12 +82,52 @@ class MedicoDashboard {
         if (turnosHoy.length === 0) {
             turnosHoyDiv.innerHTML = '<p class="text-center">No hay turnos programados para hoy</p>';
         } else {
+            // Resolver pacientes por ID antes de renderizar para evitar uso incorrecto de Promesas
+            const pacientesPorId = {};
             turnosHoyDiv.innerHTML = turnosHoy.map(t => {
-                const paciente = PacientesManager.getById(t.pacienteId);
+                if (t.pacienteId && !pacientesPorId[t.pacienteId]) {
+                    pacientesPorId[t.pacienteId] = null;
+                }
+                return '';
+            }).join('');
+
+            const pacientesIds = Object.keys(pacientesPorId).map(id => parseInt(id));
+            const pacientesCargados = [];
+            // Cargar pacientes secuencialmente para mantener compatibilidad con la API actual
+            for (const id of pacientesIds) {
+                if (!Number.isNaN(id)) {
+                    // eslint-disable-next-line no-await-in-loop
+                    const p = await PacientesManager.getById(id);
+                    if (p) pacientesCargados.push(p);
+                }
+            }
+
+            pacientesCargados.forEach(p => {
+                pacientesPorId[p.id] = p;
+            });
+
+            turnosHoyDiv.innerHTML = turnosHoy.map(t => {
+                const paciente = pacientesPorId[t.pacienteId] || null;
                 return `<div style="padding: var(--spacing-md); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
                     <div><strong>${t.hora}</strong> - ${paciente ? paciente.nombre + ' ' + paciente.apellido : 'N/A'}</div>
                     <div>
-                        <span class="badge badge-${t.estado === 'confirmado' ? 'success' : 'warning'}">${t.estado}</span>
+                        ${(() => {
+                            const estado = t.estado || t.estadoCodigo || 'pendiente';
+                            let estadoClass = 'warning';
+                            if (estado === 'confirmado') {
+                                estadoClass = 'success';
+                            } else if (estado === 'cancelado') {
+                                estadoClass = 'error';
+                            } else if (estado === 'completado') {
+                                estadoClass = 'completed';
+                            } else if (estado === 'en_curso') {
+                                estadoClass = 'info';
+                            } else if (estado === 'no_asistio') {
+                                estadoClass = 'noAsist';
+                            }
+                            const estadoNombre = formatEstadoNombre(estado);
+                            return `<span class="badge badge-${estadoClass}">${estadoNombre}</span>`;
+                        })()}
                         <button class="btn-icon" onclick="cambiarEstado(${t.id})"><i class="fas fa-edit"></i></button>
                     </div>
                 </div>`;
@@ -91,22 +135,47 @@ class MedicoDashboard {
         }
     }
 
-    loadTurnos() {
-        const turnos = TurnosManager.getAll({ medicoId: this.medico.id });
+    async loadTurnos() {
+        const turnos = await TurnosManager.getAll({ medicoId: this.medico.id });
+        // Resolver pacientes asociados a los turnos
+        const pacientesIds = [...new Set(turnos.map(t => t.pacienteId).filter(id => id))];
+        const pacientesPorId = {};
+        for (const id of pacientesIds) {
+            // eslint-disable-next-line no-await-in-loop
+            const p = await PacientesManager.getById(id);
+            if (p) pacientesPorId[p.id] = p;
+        }
         const div = document.getElementById('mis-turnos');
         if (!div) return;
         
         div.innerHTML = turnos.map(t => {
-            const paciente = PacientesManager.getById(t.pacienteId);
+            const paciente = pacientesPorId[t.pacienteId] || null;
+            const fechaLabel = formatDateToDMY(t.fecha);
             return `<div class="card" style="margin-bottom: var(--spacing-md);">
                 <div class="card-body">
                     <div style="display: flex; justify-content: space-between;">
                         <div>
-                            <strong>${t.fecha} ${t.hora}</strong><br>
+                            <strong>${fechaLabel} ${t.hora}</strong><br>
                             ${paciente ? paciente.nombre + ' ' + paciente.apellido : 'N/A'}
                         </div>
                         <div>
-                            <span class="badge badge-${t.estado === 'confirmado' ? 'success' : 'warning'}">${t.estado}</span>
+                            ${(() => {
+                                const estado = t.estado || t.estadoCodigo || 'pendiente';
+                                let estadoClass = 'warning';
+                                if (estado === 'confirmado') {
+                                    estadoClass = 'success';
+                                } else if (estado === 'cancelado') {
+                                    estadoClass = 'error';
+                                } else if (estado === 'completado') {
+                                    estadoClass = 'completed';
+                                } else if (estado === 'en_curso') {
+                                    estadoClass = 'info';
+                                } else if (estado === 'no_asistio') {
+                                    estadoClass = 'noAsist';
+                                }
+                                const estadoNombre = formatEstadoNombre(estado);
+                                return `<span class="badge badge-${estadoClass}">${estadoNombre}</span>`;
+                            })()}
                             <button class="btn-icon" onclick="cambiarEstado(${t.id})"><i class="fas fa-edit"></i></button>
                         </div>
                     </div>
@@ -115,10 +184,14 @@ class MedicoDashboard {
         }).join('');
     }
 
-    loadPacientes() {
-        const turnos = TurnosManager.getAll({ medicoId: this.medico.id });
+    async loadPacientes() {
+        const turnos = await TurnosManager.getAll({ medicoId: this.medico.id });
         const pacientesIds = [...new Set(turnos.map(t => t.pacienteId))];
-        const pacientes = pacientesIds.map(id => PacientesManager.getById(id)).filter(p => p);
+        const pacientes = [];
+        for (const id of pacientesIds) {
+            const p = await PacientesManager.getById(id);
+            if (p) pacientes.push(p);
+        }
         
         const list = document.getElementById('pacientes-list');
         if (!list) return;
@@ -138,89 +211,272 @@ class MedicoDashboard {
         </div>`;
     }
 
-    async loadDisponibilidad() {
+    loadDisponibilidad() {
         const content = document.getElementById('disponibilidad-content');
-        if (!content) return;
-        
-        // Mostrar loading mientras se cargan los datos
-        content.innerHTML = `
-            <div class="card">
-                <div class="card-body" style="text-align: center; padding: var(--spacing-xl);">
-                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
-                    <p style="margin-top: var(--spacing-md);">Cargando información...</p>
-                </div>
-            </div>
-        `;
-        
-        // Obtener usuario actual desde la API si no está disponible
-        if (!this.user || !this.user.medicoId) {
-            const { ApiClient } = await import('../../modules/api.js');
-            try {
-                this.user = await ApiClient.getCurrentUser();
-                if (!this.user) {
-                    // Fallback a localStorage
-                    this.user = AuthManager.getCurrentUser();
-                }
-            } catch (error) {
-                console.error('Error al obtener usuario desde API:', error);
-                // Fallback a localStorage
-                this.user = AuthManager.getCurrentUser();
-            }
-        }
-        
-        // Recargar datos del médico desde la API para asegurar datos actualizados
-        if (this.user && this.user.medicoId) {
-            try {
-                const medicoActualizado = await MedicosManager.getById(this.user.medicoId);
-                if (medicoActualizado) {
-                    this.medico = medicoActualizado;
-                }
-            } catch (error) {
-                console.error('Error al cargar médico:', error);
-            }
-        }
-        
-        if (!this.medico) {
-            content.innerHTML = `
-                <div class="card">
-                    <div class="card-body">
-                        <p class="text-error">No se pudo cargar la información del médico</p>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-        
-        // Formatear especialidad
-        const especialidad = this.medico.especialidad || 
-                           (this.medico.especialidades 
-                               ? (Array.isArray(this.medico.especialidades) 
-                                   ? this.medico.especialidades.join(', ')
-                                   : this.medico.especialidades)
-                               : 'No especificada');
+        if (!content || !this.medico) return;
         
         content.innerHTML = `
             <div class="card">
                 <div class="card-body">
-                    <h4>Información Profesional y Disponibilidad</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                        <div>
-                            <p><strong>Nombre:</strong> ${this.medico.nombre || 'N/A'}</p>
-                            <p><strong>Especialidad:</strong> ${especialidad || 'N/A'}</p>
-                            <p><strong>Matrícula:</strong> ${this.medico.matricula || 'N/A'}</p>
-                        </div>
-                        <div>
-                            <p><strong>Horario:</strong> ${this.medico.horario || 'No especificado'}</p>
-                            ${this.medico.telefono ? `<p><strong>Teléfono:</strong> ${this.medico.telefono}</p>` : ''}
-                            ${this.medico.email ? `<p><strong>Email:</strong> ${this.medico.email}</p>` : ''}
-                        </div>
-                    </div>
+                    <h4>Horario Actual</h4>
+                    <p>${this.medico.horario}</p>
+                    <h4>Especialidad</h4>
+                    <p>${this.medico.especialidad}</p>
                     <button class="btn-primary" onclick="editarDisponibilidad()">
-                        <i class="fas fa-edit"></i> Editar Información
+                        <i class="fas fa-edit"></i> Editar Disponibilidad
                     </button>
                 </div>
             </div>
         `;
+    }
+
+    // =============================
+    // CALENDARIO MENSUAL DE TURNOS
+    // =============================
+    async loadCalendario() {
+        const container = document.getElementById('calendar-view');
+        if (!container || !this.medico) return;
+
+        // Normalizar fecha de referencia al primer día del mes
+        const current = this.calendarDate instanceof Date ? this.calendarDate : new Date();
+        const year = current.getFullYear();
+        const month = current.getMonth(); // 0-11
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+
+        const toISO = (d) => d.toISOString().split('T')[0];
+        const desde = toISO(firstDay);
+        const hasta = toISO(lastDay);
+
+        try {
+            // Cargar turnos del rango de fechas filtrados por el médico logueado
+            const [turnos, pacientes, medicos] = await Promise.all([
+                TurnosManager.getAll({ desde, hasta, medicoId: this.medico.id }),
+                PacientesManager.getAll({ activo: true }),
+                MedicosManager.getAll({ activo: true })
+            ]);
+
+            // Agrupar turnos por fecha (YYYY-MM-DD)
+            const turnosPorFecha = {};
+            turnos.forEach(t => {
+                const fecha = t.fecha;
+                if (!turnosPorFecha[fecha]) turnosPorFecha[fecha] = [];
+                turnosPorFecha[fecha].push(t);
+            });
+
+            this.calendarData = {
+                turnos,
+                pacientes,
+                medicos,
+                turnosPorFecha
+            };
+
+            this.renderCalendarMonth(container, year, month);
+        } catch (error) {
+            console.error('Error al cargar calendario de turnos:', error);
+            NotificationManager.error('Error al cargar el calendario de turnos');
+        }
+    }
+
+    renderCalendarMonth(container, year, month) {
+        const monthNames = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+        const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const firstWeekDay = (firstDay.getDay() || 7); // 1-7 (Lun=1)
+        const daysInMonth = lastDay.getDate();
+
+        const today = new Date();
+        const todayISO = today.toISOString().split('T')[0];
+
+        // Construir celdas del calendario
+        const cells = [];
+        // Celdas vacías antes del día 1
+        for (let i = 1; i < firstWeekDay; i++) {
+            cells.push({ empty: true });
+        }
+        // Celdas de días reales
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateObj = new Date(year, month, day);
+            const iso = dateObj.toISOString().split('T')[0];
+            const turnosDelDia = this.calendarData.turnosPorFecha[iso] || [];
+            cells.push({
+                empty: false,
+                day,
+                iso,
+                turnosCount: turnosDelDia.length,
+                hasTurnos: turnosDelDia.length > 0,
+                isToday: iso === todayISO
+            });
+        }
+
+        const monthLabel = `${monthNames[month]} ${year}`;
+
+        container.innerHTML = `
+            <div class="calendar-container card">
+                <div class="card-header calendar-header">
+                    <div class="calendar-header-left">
+                        <h3>${monthLabel}</h3>
+                        <p class="calendar-subtitle">Seleccioná un día para ver los turnos</p>
+                    </div>
+                    <div class="calendar-header-right">
+                        <button class="btn-icon calendar-nav-btn" data-cal-action="prev"><i class="fas fa-chevron-left"></i></button>
+                        <button class="btn-secondary calendar-nav-today" data-cal-action="today">Hoy</button>
+                        <button class="btn-icon calendar-nav-btn" data-cal-action="next"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="card-body calendar-body">
+                    <div class="calendar-main">
+                        <div class="calendar-weekdays">
+                            ${weekDays.map(d => `<div class="calendar-weekday">${d}</div>`).join('')}
+                        </div>
+                        <div class="calendar-grid">
+                            ${cells.map(cell => {
+                                if (cell.empty) {
+                                    return '<div class="calendar-day calendar-day--empty"></div>';
+                                }
+                                const classes = [
+                                    'calendar-day',
+                                    cell.isToday ? 'calendar-day--today' : '',
+                                    cell.hasTurnos ? 'calendar-day--has-turnos' : ''
+                                ].filter(Boolean).join(' ');
+                                const badge = cell.hasTurnos
+                                    ? `<span class="calendar-day-badge">${cell.turnosCount}</span>`
+                                    : '';
+                                return `<button class="${classes}" data-date="${cell.iso}">
+                                    <span class="calendar-day-number">${cell.day}</span>
+                                    ${badge}
+                                </button>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                    <div class="calendar-sidebar">
+                        <div class="calendar-sidebar-header">
+                            <h4 id="calendar-selected-date-title">Seleccioná un día</h4>
+                            <p class="calendar-sidebar-subtitle" id="calendar-selected-date-subtitle">Los turnos aparecerán aquí</p>
+                        </div>
+                        <div id="calendar-day-appointments" class="calendar-day-appointments">
+                            <p class="text-muted text-center">No hay día seleccionado</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Eventos de navegación
+        container.querySelectorAll('[data-cal-action]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.getAttribute('data-cal-action');
+                if (action === 'prev') {
+                    this.calendarDate = new Date(year, month - 1, 1);
+                } else if (action === 'next') {
+                    this.calendarDate = new Date(year, month + 1, 1);
+                } else if (action === 'today') {
+                    this.calendarDate = new Date();
+                }
+                this.loadCalendario();
+            });
+        });
+
+        // Eventos para seleccionar días
+        container.querySelectorAll('.calendar-day[data-date]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const date = btn.getAttribute('data-date');
+                container.querySelectorAll('.calendar-day--selected').forEach(d => d.classList.remove('calendar-day--selected'));
+                btn.classList.add('calendar-day--selected');
+                this.renderDayAppointments(date);
+            });
+        });
+    }
+
+    renderDayAppointments(dateISO) {
+        const listaDiv = document.getElementById('calendar-day-appointments');
+        const titleEl = document.getElementById('calendar-selected-date-title');
+        const subtitleEl = document.getElementById('calendar-selected-date-subtitle');
+        if (!listaDiv || !titleEl || !subtitleEl) return;
+
+        const turnosDelDia = this.calendarData.turnosPorFecha[dateISO] || [];
+        const fechaObj = new Date(dateISO);
+        const weekdayLabel = fechaObj.toLocaleDateString('es-AR', { weekday: 'long' });
+        const fechaLabel = formatDateToDMY(dateISO);
+
+        // Ejemplo: "miércoles 26-11-2025"
+        const titulo = `${weekdayLabel} ${fechaLabel}`.trim();
+        titleEl.textContent = titulo.charAt(0).toUpperCase() + titulo.slice(1);
+
+        if (turnosDelDia.length === 0) {
+            subtitleEl.textContent = 'No hay turnos para este día';
+            listaDiv.innerHTML = '<p class="text-center text-muted" style="padding: var(--spacing-lg);">No hay turnos registrados en esta fecha.</p>';
+            return;
+        }
+
+        subtitleEl.textContent = `${turnosDelDia.length} turno${turnosDelDia.length > 1 ? 's' : ''} en esta fecha`;
+
+        const { pacientes, medicos } = this.calendarData;
+
+        listaDiv.innerHTML = turnosDelDia
+            .sort((a, b) => (a.hora || '').localeCompare(b.hora || ''))
+            .map(t => {
+                const paciente = pacientes.find(p => p.id === t.pacienteId || p.id === parseInt(t.pacienteId));
+                const medico = medicos.find(m => m.id === t.medicoId || m.id === parseInt(t.medicoId));
+                const estado = t.estado || t.estadoCodigo || CONFIG.TURNO_ESTADOS?.PENDIENTE || 'pendiente';
+                let estadoClass = 'warning'; // default para pendiente
+                if (estado === 'confirmado') {
+                    estadoClass = 'success';
+                } else if (estado === 'cancelado') {
+                    estadoClass = 'error';
+                } else if (estado === 'completado') {
+                    estadoClass = 'completed';
+                } else if (estado === 'en_curso') {
+                    estadoClass = 'info';
+                } else if (estado === 'no_asistio') {
+                    estadoClass = 'noAsist';
+                }
+                const estadoNombre = formatEstadoNombre(estado);
+
+                const pacienteLabel = paciente
+                    ? `${paciente.nombre} ${paciente.apellido}`
+                    : 'Paciente no encontrado';
+                const medicoLabel = medico
+                    ? medico.nombre
+                    : 'Médico no encontrado';
+
+                return `
+                    <div class="calendar-appointment-card" data-turno-id="${t.id}">
+                        <div class="calendar-appointment-main">
+                            <div class="calendar-appointment-time">
+                                <i class="fas fa-clock"></i>
+                                <span>${t.hora || '--:--'}</span>
+                            </div>
+                            <div class="calendar-appointment-info">
+                                <div class="calendar-appointment-paciente">${pacienteLabel}</div>
+                                <div class="calendar-appointment-medico">${medicoLabel}</div>
+                                ${t.motivo ? `<div class="calendar-appointment-motivo">${t.motivo}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="calendar-appointment-meta">
+                            <span class="badge badge-${estadoClass}">${estadoNombre}</span>
+                            <button class="btn-icon calendar-appointment-edit" data-turno-id="${t.id}" title="Ver / Editar turno">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        // Click en tarjeta de turno para ver / editar usando la lógica existente
+        listaDiv.querySelectorAll('.calendar-appointment-edit').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = parseInt(btn.getAttribute('data-turno-id'));
+                if (!Number.isNaN(id) && typeof window.cambiarEstado === 'function') {
+                    window.cambiarEstado(id);
+                }
+            });
+        });
     }
 }
 
@@ -254,45 +510,21 @@ window.verHistorial = async function(id) {
 
 window.editarDisponibilidad = async function() {
     const { ModalManager } = await import('../../components/modals.js');
-    const { ApiClient } = await import('../../modules/api.js');
+    const { MedicosManager } = await import('../../modules/medicos.js');
     
-    // Obtener usuario actual desde la API para asegurar datos actualizados
-    let user = null;
-    try {
-        user = await ApiClient.getCurrentUser();
-        if (!user) {
-            // Fallback a localStorage
-            user = AuthManager.getCurrentUser();
-        }
-    } catch (error) {
-        console.error('Error al obtener usuario desde API:', error);
-        // Fallback a localStorage
-        user = AuthManager.getCurrentUser();
-    }
-    
-    console.log('Usuario obtenido:', user);
-    console.log('Tipo de usuario:', typeof user);
-    console.log('medicoId del usuario:', user?.medicoId);
-    console.log('Tipo de medicoId:', typeof user?.medicoId);
-    
-    if (!user) {
-        NotificationManager.error('No se encontró información del usuario. Por favor, inicie sesión nuevamente.');
-        console.error('Usuario es null o undefined');
+    const user = AuthManager.getCurrentUser();
+    if (!user || !user.medicoId) {
+        NotificationManager.error('No se encontró información del médico');
         return;
     }
     
-    // Convertir medicoId a número si es necesario
-    const medicoId = user.medicoId ? parseInt(user.medicoId) : null;
-    
-    if (!medicoId || isNaN(medicoId)) {
-        NotificationManager.error('No se encontró información del médico. Por favor, inicie sesión nuevamente.');
-        console.error('Usuario sin medicoId válido:', user);
+    const medico = await MedicosManager.getById(user.medicoId);
+    if (!medico) {
+        NotificationManager.error('Médico no encontrado');
         return;
     }
     
-    // Abrir modal pasando solo el medicoId - el modal cargará los datos desde la API
-    console.log('Abriendo modal con medicoId:', medicoId, '(tipo:', typeof medicoId, ')');
-    await ModalManager.openMedicoModal(null, medicoId);
+    await ModalManager.openMedicoModal(medico);
 };
 
 const medicoDashboard = new MedicoDashboard();

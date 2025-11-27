@@ -44,36 +44,21 @@ class AuthController {
                 errorResponse('Email o contraseña incorrectos', 401);
             }
 
-            // Si es paciente, cargar datos actualizados desde la tabla pacientes
-            $nombre = $usuario['nombre'];
-            $apellido = $usuario['apellido'];
-            
-            if ($usuario['rol'] === 'paciente' && !empty($usuario['paciente_id'])) {
-                $pacienteModel = new Paciente();
-                $paciente = $pacienteModel->getById($usuario['paciente_id']);
-                
-                if ($paciente) {
-                    // Usar los datos actualizados del paciente
-                    $nombre = $paciente['nombre'];
-                    $apellido = $paciente['apellido'];
-                }
-            }
-
-            // Crear sesión con datos actualizados
+            // Crear sesión
             $_SESSION['user_id'] = $usuario['id'];
-            $_SESSION['user_nombre'] = $nombre;
-            $_SESSION['user_apellido'] = $apellido;
+            $_SESSION['user_nombre'] = $usuario['nombre'];
+            $_SESSION['user_apellido'] = $usuario['apellido'];
             $_SESSION['user_email'] = $usuario['email'];
             $_SESSION['user_rol'] = $usuario['rol'];
             $_SESSION['user_medico_id'] = $usuario['medico_id'] ?? null;
             $_SESSION['user_paciente_id'] = $usuario['paciente_id'] ?? null;
             $_SESSION['user_activo'] = $usuario['activo'];
 
-            // Formatear respuesta con datos actualizados
+            // Formatear respuesta
             $userResponse = [
                 'id' => $usuario['id'],
-                'nombre' => $nombre,
-                'apellido' => $apellido,
+                'nombre' => $usuario['nombre'],
+                'apellido' => $usuario['apellido'],
                 'email' => $usuario['email'],
                 'rol' => $usuario['rol'],
                 'medicoId' => $usuario['medico_id'] ?? null,

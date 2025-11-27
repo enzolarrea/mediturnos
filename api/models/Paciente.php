@@ -25,16 +25,6 @@ class Paciente {
             }
         }
 
-        // Validar email único si se proporciona
-        if (!empty($data['email'])) {
-            $sql = "SELECT id FROM pacientes WHERE email = :email";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([':email' => $data['email']]);
-            if ($stmt->fetch()) {
-                throw new Exception('Ya existe un paciente con este correo electrónico');
-            }
-        }
-
         $sql = "INSERT INTO pacientes 
                 (nombre, apellido, dni, telefono, email, fecha_nacimiento, 
                  direccion, activo, creado_por)
@@ -99,23 +89,14 @@ class Paciente {
         $params = [];
 
         if (isset($filters['activo'])) {
-            // Convertir string a boolean si viene de GET
-            $activo = $filters['activo'];
-            if (is_string($activo)) {
-                $activo = ($activo === 'true' || $activo === '1');
-            }
             $sql .= " AND p.activo = :activo";
-            $params[':activo'] = $activo ? 1 : 0;
+            $params[':activo'] = $filters['activo'] ? 1 : 0;
         }
 
         if (isset($filters['search']) && !empty($filters['search'])) {
-            $searchValue = '%' . trim($filters['search']) . '%';
-            $sql .= " AND (p.nombre LIKE :search_nombre OR p.apellido LIKE :search_apellido 
-                    OR p.dni LIKE :search_dni OR p.email LIKE :search_email)";
-            $params[':search_nombre'] = $searchValue;
-            $params[':search_apellido'] = $searchValue;
-            $params[':search_dni'] = $searchValue;
-            $params[':search_email'] = $searchValue;
+            $sql .= " AND (p.nombre LIKE :search OR p.apellido LIKE :search 
+                    OR p.dni LIKE :search OR p.email LIKE :search)";
+            $params[':search'] = '%' . $filters['search'] . '%';
         }
 
         $sql .= " ORDER BY p.nombre, p.apellido";
@@ -147,26 +128,12 @@ class Paciente {
         }
 
         // Validar DNI único si se cambia
-        if (isset($data['dni']) && !empty($data['dni']) && $data['dni'] !== $paciente['dni']) {
+        if (isset($data['dni']) && $data['dni'] !== $paciente['dni']) {
             $sql = "SELECT id FROM pacientes WHERE dni = :dni AND id != :id";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([':dni' => $data['dni'], ':id' => $id]);
             if ($stmt->fetch()) {
                 throw new Exception('Ya existe un paciente con este DNI');
-            }
-        }
-
-        // Validar email único si se cambia o se proporciona
-        if (isset($data['email']) && !empty($data['email'])) {
-            $emailActual = $paciente['email'] ?? null;
-            // Si el email cambió o no había email antes
-            if ($data['email'] !== $emailActual) {
-                $sql = "SELECT id FROM pacientes WHERE email = :email AND id != :id";
-                $stmt = $this->db->prepare($sql);
-                $stmt->execute([':email' => $data['email'], ':id' => $id]);
-                if ($stmt->fetch()) {
-                    throw new Exception('Ya existe un paciente con este correo electrónico');
-                }
             }
         }
 
@@ -200,51 +167,7 @@ class Paciente {
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
-        // Obtener paciente actualizado
-        $pacienteActualizado = $this->getById($id);
-        
-        // Sincronizar con la tabla usuarios si se actualizó nombre, apellido o email
-        if ($pacienteActualizado && (isset($data['nombre']) || isset($data['apellido']) || isset($data['email']))) {
-            // Buscar usuario asociado a este paciente
-            $sqlUsuario = "SELECT id, email FROM usuarios WHERE paciente_id = :paciente_id";
-            $stmtUsuario = $this->db->prepare($sqlUsuario);
-            $stmtUsuario->execute([':paciente_id' => $id]);
-            $usuario = $stmtUsuario->fetch();
-            
-            if ($usuario) {
-                // Si se actualizó el email, validar que no esté duplicado en usuarios
-                if (isset($data['email']) && !empty($data['email']) && $data['email'] !== $usuario['email']) {
-                    $sqlCheckEmail = "SELECT id FROM usuarios WHERE email = :email AND id != :id";
-                    $stmtCheckEmail = $this->db->prepare($sqlCheckEmail);
-                    $stmtCheckEmail->execute([
-                        ':email' => strtolower(trim($data['email'])),
-                        ':id' => $usuario['id']
-                    ]);
-                    if ($stmtCheckEmail->fetch()) {
-                        throw new Exception('Este correo electrónico ya está registrado en otro usuario');
-                    }
-                }
-                
-                // Actualizar nombre, apellido y email en la tabla usuarios
-                $sqlUpdateUsuario = "UPDATE usuarios SET 
-                                    nombre = COALESCE(:nombre, nombre),
-                                    apellido = COALESCE(:apellido, apellido),
-                                    email = COALESCE(:email, email)
-                                    WHERE id = :id";
-                $paramsUsuario = [
-                    ':id' => $usuario['id'],
-                    ':nombre' => $pacienteActualizado['nombre'] ?? null,
-                    ':apellido' => $pacienteActualizado['apellido'] ?? null,
-                    ':email' => isset($pacienteActualizado['email']) && !empty($pacienteActualizado['email']) 
-                        ? strtolower(trim($pacienteActualizado['email'])) 
-                        : null
-                ];
-                $stmtUpdateUsuario = $this->db->prepare($sqlUpdateUsuario);
-                $stmtUpdateUsuario->execute($paramsUsuario);
-            }
-        }
-
-        return $pacienteActualizado;
+        return $this->getById($id);
     }
 
     /**

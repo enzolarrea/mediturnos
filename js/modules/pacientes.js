@@ -2,7 +2,6 @@
 // MÓDULO DE GESTIÓN DE PACIENTES
 // ============================================
 
-import { CONFIG } from '../config.js';
 import { ApiClient } from './api.js';
 
 export class PacientesManager {
@@ -37,7 +36,7 @@ export class PacientesManager {
             return { success: true, paciente };
         } catch (error) {
             console.error('Error al crear paciente:', error);
-            return { success: false, message: error.message || 'Error al crear el paciente' };
+            return { success: false, message: error.message || 'Error al crear paciente' };
         }
     }
 
@@ -47,23 +46,18 @@ export class PacientesManager {
             return { success: true, paciente };
         } catch (error) {
             console.error('Error al actualizar paciente:', error);
-            return { success: false, message: error.message || 'Error al actualizar el paciente' };
+            return { success: false, message: error.message || 'Error al actualizar paciente' };
         }
     }
 
-    static delete(id) {
-        const pacientes = StorageManager.get(CONFIG.STORAGE.PACIENTES) || [];
-        const index = pacientes.findIndex(p => p.id === parseInt(id));
-
-        if (index === -1) {
-            return { success: false, message: 'Paciente no encontrado' };
+    static async delete(id) {
+        try {
+            await ApiClient.deletePaciente(id);
+            return { success: true };
+        } catch (error) {
+            console.error('Error al eliminar paciente:', error);
+            return { success: false, message: error.message || 'Error al eliminar paciente' };
         }
-
-        // Soft delete
-        pacientes[index].activo = false;
-        StorageManager.set(CONFIG.STORAGE.PACIENTES, pacientes);
-
-        return { success: true };
     }
 
     static async getHistorial(id) {
@@ -76,13 +70,11 @@ export class PacientesManager {
         }
     }
 
-    static updateUltimaVisita(id) {
-        const pacientes = StorageManager.get(CONFIG.STORAGE.PACIENTES) || [];
-        const index = pacientes.findIndex(p => p.id === parseInt(id));
-
-        if (index !== -1) {
-            pacientes[index].ultimaVisita = new Date().toISOString().split('T')[0];
-            StorageManager.set(CONFIG.STORAGE.PACIENTES, pacientes);
+    static async updateUltimaVisita(id) {
+        try {
+            await ApiClient.updatePaciente(id, { ultimaVisita: new Date().toISOString().split('T')[0] });
+        } catch (error) {
+            console.error('Error al actualizar última visita del paciente:', error);
         }
     }
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="app-container">
         <aside class="sidebar">
@@ -68,15 +70,19 @@
                     <h1 class="page-title">Dashboard</h1>
                 </div>
                 <div class="header-right">
+                    <!-- Barra de busqueda
                     <div class="search-box">
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Buscar...">
                     </div>
+                    -->
                     <div class="header-actions">
+                        <!-- Notificaciones
                         <button class="btn-icon" title="Notificaciones">
                             <i class="fas fa-bell"></i>
                             <span class="notification-badge" id="notification-count">0</span>
                         </button>
+                        -->
                         <button class="btn-primary" id="newAppointmentBtn">
                             <i class="fas fa-plus"></i>
                             Nuevo Turno
@@ -91,7 +97,8 @@
                     <div class="stats-grid" id="stats-grid">
                         <!-- Se llenará dinámicamente -->
                     </div>
-                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-xl); margin-top: var(--spacing-xl);">
+                    <div
+                        style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-xl); margin-top: var(--spacing-xl);">
                         <div class="card">
                             <div class="card-header">
                                 <h3>Turnos Recientes</h3>
@@ -113,14 +120,16 @@
 
                 <!-- Turnos Section -->
                 <section id="turnos" class="content-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
                         <h2>Gestión de Turnos</h2>
                         <button class="btn-primary" id="addAppointmentBtn2">
                             <i class="fas fa-plus"></i>
                             Nuevo Turno
                         </button>
                     </div>
-                    <div class="filters-bar" style="background: var(--bg-primary); padding: var(--spacing-lg); border-radius: var(--border-radius-lg); margin-bottom: var(--spacing-xl); display: flex; gap: var(--spacing-lg);">
+                    <div class="filters-bar"
+                        style="background: var(--bg-primary); padding: var(--spacing-lg); border-radius: var(--border-radius-lg); margin-bottom: var(--spacing-xl); display: flex; gap: var(--spacing-lg);">
                         <div class="form-group" style="margin: 0; flex: 1;">
                             <label>Fecha</label>
                             <input type="date" class="form-control" id="filter-fecha">
@@ -136,9 +145,10 @@
                             <select class="form-control" id="filter-estado">
                                 <option value="">Todos</option>
                                 <option value="pendiente">Pendiente</option>
+                                <option value="en_curso">En Curso</option>
                                 <option value="confirmado">Confirmado</option>
                                 <option value="completado">Completado</option>
-                                <option value="cancelado">Cancelado</option>
+                                <option value="no_asistio">No Asistió</option>
                             </select>
                         </div>
                     </div>
@@ -151,7 +161,8 @@
 
                 <!-- Otras secciones se agregarán aquí -->
                 <section id="pacientes" class="content-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
                         <h2>Pacientes</h2>
                         <button class="btn-primary" id="addPacienteBtn">
                             <i class="fas fa-plus"></i>
@@ -166,7 +177,8 @@
                 </section>
 
                 <section id="medicos" class="content-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
                         <h2>Médicos</h2>
                         <button class="btn-primary" id="addMedicoBtn">
                             <i class="fas fa-plus"></i>
@@ -181,7 +193,8 @@
                 </section>
 
                 <section id="usuarios" class="content-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
                         <h2>Usuarios</h2>
                         <button class="btn-primary" id="addUsuarioBtn">
                             <i class="fas fa-plus"></i>
@@ -197,9 +210,53 @@
 
                 <section id="reportes" class="content-section">
                     <h2>Reportes y Estadísticas</h2>
+                    
+                    <!-- Separador: Usuarios -->
+                    <div style="margin: var(--spacing-2xl) 0 var(--spacing-xl) 0; padding: var(--spacing-lg) 0; border-bottom: 2px solid var(--border-color); position: relative;">
+                        <h3 style="font-size: var(--font-size-2xl); font-weight: 600; color: var(--primary); margin: 0; display: inline-block; background: var(--bg-secondary); padding-right: var(--spacing-md); position: relative; z-index: 1;">
+                            <i class="fas fa-users" style="margin-right: var(--spacing-sm); color: var(--primary);"></i>
+                            Usuarios
+                        </h3>
+                        <div style="position: absolute; bottom: -2px; left: 0; width: 180px; height: 2px; background: var(--primary);"></div>
+                    </div>
+                    
                     <div class="card">
+                        <h2 style="margin-left: var(--spacing-lg); margin-top: var(--spacing-lg); color: var(--text-primary);">Usuarios Registrados</h2>
                         <div class="card-body">
-                            <div id="reports-content"></div>
+                            <div id="reports-usuarios-diarias"></div>
+                            <div id="reports-usuarios-mensuales"></div>
+                            <div id="reports-usuarios-totales"></div>
+                        </div>
+                    </div>
+                    <br>
+                    
+                    <!-- Separador: Turnos -->
+                    <div style="margin: var(--spacing-2xl) 0 var(--spacing-xl) 0; padding: var(--spacing-lg) 0; border-bottom: 2px solid var(--border-color); position: relative;">
+                        <h3 style="font-size: var(--font-size-2xl); font-weight: 600; color: var(--primary); margin: 0; display: inline-block; background: var(--bg-secondary); padding-right: var(--spacing-md); position: relative; z-index: 1;">
+                            <i class="fas fa-calendar-alt" style="margin-right: var(--spacing-sm); color: var(--primary);"></i>
+                            Turnos
+                        </h3>
+                        <div style="position: absolute; bottom: -2px; left: 0; width: 180px; height: 2px; background: var(--primary);"></div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2 style="margin-left: var(--spacing-lg); margin-top: var(--spacing-lg); color: var(--text-primary);">Turnos Diarios</h2>
+                        <div class="card-body">
+                            <div id="reports-diarias"></div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="card">
+                        <h2 style="margin-left: var(--spacing-lg); margin-top: var(--spacing-lg); color: var(--text-primary);" id="reports-mensuales-title">Turnos Mensuales</h2>
+                        <div class="card-body">
+                            <div id="reports-mensuales"></div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="card">
+                        <h2 style="margin-left: var(--spacing-lg); margin-top: var(--spacing-lg); color: var(--text-primary);">Turnos Totales</h2>
+                        <div class="card-body">
+                            <div id="reports-totales"></div>
                         </div>
                     </div>
                 </section>
@@ -213,5 +270,5 @@
     <script type="module" src="../../js/app-complete.js"></script>
     <script type="module" src="../../js/views/admin/dashboard.js"></script>
 </body>
-</html>
 
+</html>

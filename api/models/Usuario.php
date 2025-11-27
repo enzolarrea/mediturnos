@@ -196,54 +196,7 @@ class Usuario {
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
-        $usuarioActualizado = $this->getById($id);
-        
-        // Si es paciente y se actualizó nombre, apellido o email, sincronizar con tabla pacientes
-        if ($usuarioActualizado && $usuarioActualizado['pacienteId'] && 
-            (isset($data['nombre']) || isset($data['apellido']) || isset($data['email']))) {
-            
-            require_once __DIR__ . '/Paciente.php';
-            $pacienteModel = new Paciente();
-            $pacienteId = $usuarioActualizado['pacienteId'];
-            
-            // Preparar datos para sincronizar con pacientes
-            $datosPaciente = [];
-            if (isset($data['nombre'])) {
-                $datosPaciente['nombre'] = $data['nombre'];
-            }
-            if (isset($data['apellido'])) {
-                $datosPaciente['apellido'] = $data['apellido'];
-            }
-            if (isset($data['email'])) {
-                $datosPaciente['email'] = $data['email'];
-            }
-            
-            // También sincronizar otros campos si vienen en los datos
-            if (isset($data['telefono'])) {
-                $datosPaciente['telefono'] = $data['telefono'];
-            }
-            if (isset($data['direccion'])) {
-                $datosPaciente['direccion'] = $data['direccion'];
-            }
-            if (isset($data['fechaNacimiento'])) {
-                $datosPaciente['fechaNacimiento'] = $data['fechaNacimiento'];
-            }
-            if (isset($data['dni'])) {
-                $datosPaciente['dni'] = $data['dni'];
-            }
-            
-            // Actualizar paciente con los datos sincronizados
-            if (!empty($datosPaciente)) {
-                try {
-                    $pacienteModel->update($pacienteId, $datosPaciente);
-                } catch (Exception $e) {
-                    // Si falla la sincronización, registrar error pero no fallar la actualización del usuario
-                    error_log('Error al sincronizar paciente con usuario: ' . $e->getMessage());
-                }
-            }
-        }
-
-        return $usuarioActualizado;
+        return $this->getById($id);
     }
 
     /**

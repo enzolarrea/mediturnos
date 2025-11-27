@@ -24,6 +24,10 @@
     --warning-light: #fef3c7;
     --info: #3b82f6;
     --info-light: #dbeafe;
+    --completed: #7620b4;
+    --completed-light: #e9d8f4;
+    --noAsist: #545659;
+    --noAsist-light: #cacaca;
     
     /* Colores médicos */
     --medical-blue: #0ea5e9;
@@ -626,6 +630,16 @@ textarea.form-control {
     color: var(--primary);
 }
 
+.badge-completed {
+    background: var(--completed-light);
+    color: var(--completed);
+}
+
+.badge-noAsist {
+    background: var(--noAsist-light);
+    color: var(--noAsist);
+}
+
 /* Modal */
 .modal {
     display: none;
@@ -847,6 +861,289 @@ body.modal-open {
 .gap-2 { gap: var(--spacing-sm); }
 .gap-3 { gap: var(--spacing-md); }
 .gap-4 { gap: var(--spacing-lg); }
+
+/* ============================================
+   CALENDARIO DE TURNOS - SECRETARIO
+   Diseño moderno y responsive
+   ============================================ */
+
+.calendar-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-lg);
+}
+
+.calendar-header-left h3 {
+    margin: 0;
+}
+
+.calendar-subtitle {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.calendar-header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.calendar-nav-btn {
+    width: 36px;
+    height: 36px;
+}
+
+.calendar-nav-today {
+    font-size: var(--font-size-xs);
+}
+
+.calendar-body {
+    display: grid;
+    grid-template-columns: 2fr 1.3fr;
+    gap: var(--spacing-xl);
+}
+
+.calendar-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 0.06em;
+}
+
+.calendar-weekday {
+    text-align: center;
+    padding: var(--spacing-xs);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--spacing-xs);
+}
+
+.calendar-day {
+    position: relative;
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    min-height: 72px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.calendar-day:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.calendar-day--empty {
+    background: transparent;
+    border: none;
+    cursor: default;
+}
+
+.calendar-day-number {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.calendar-day-badge {
+    position: absolute;
+    bottom: var(--spacing-xs);
+    right: var(--spacing-xs);
+    background: var(--primary-lighter);
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+
+.calendar-day--has-turnos .calendar-day-number {
+    color: var(--primary-dark);
+}
+
+.calendar-day--today {
+    border-color: var(--medical-blue);
+    box-shadow: 0 0 0 1px var(--medical-blue);
+}
+
+.calendar-day--selected {
+    background: var(--primary-lighter);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.calendar-sidebar {
+    border-left: 1px solid var(--border-color);
+    padding-left: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.calendar-sidebar-header h4 {
+    margin-bottom: var(--spacing-xs);
+}
+
+.calendar-sidebar-subtitle {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.calendar-day-appointments {
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: var(--spacing-sm);
+}
+
+.calendar-appointment-card {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    margin-bottom: var(--spacing-sm);
+    transition: all var(--transition-fast);
+}
+
+.calendar-appointment-card:hover {
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.calendar-appointment-main {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: flex-start;
+    flex: 1;
+}
+
+.calendar-appointment-time {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius);
+    background: var(--bg-primary);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.calendar-appointment-time i {
+    margin-bottom: 2px;
+    color: var(--primary);
+}
+
+.calendar-appointment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.calendar-appointment-paciente {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.calendar-appointment-medico {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.calendar-appointment-motivo {
+    margin-top: 2px;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.calendar-appointment-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+}
+
+.calendar-appointment-meta .badge {
+    text-transform: none;
+}
+
+.calendar-appointment-edit {
+    width: 32px;
+    height: 32px;
+}
+
+@media (max-width: 1024px) {
+    .calendar-body {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-sidebar {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid var(--border-color);
+        padding-top: var(--spacing-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+
+    .calendar-header-right {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .calendar-weekdays {
+        font-size: 0.65rem;
+    }
+
+    .calendar-day {
+        min-height: 64px;
+    }
+
+    .calendar-day-appointments {
+        max-height: 320px;
+    }
+}
 
 /* Responsive */
 @media (max-width: 768px) {

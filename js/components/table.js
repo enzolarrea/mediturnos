@@ -218,10 +218,23 @@ export class DataTable {
 
     formatValue(value, format) {
         switch (format) {
-            case 'date':
-                return new Date(value).toLocaleDateString('es-AR');
-            case 'datetime':
-                return new Date(value).toLocaleString('es-AR');
+            case 'date': {
+                // Esperamos YYYY-MM-DD o Date; mostrar como DD-MM-YYYY
+                try {
+                    const { formatDateToDMY } = require('../utils/formatters.js');
+                    return formatDateToDMY(value);
+                } catch {
+                    return value;
+                }
+            }
+            case 'datetime': {
+                // Para datetime se mantiene el toLocaleString, pero podríamos ajustar si se usa en el futuro
+                try {
+                    return new Date(value).toLocaleString('es-AR');
+                } catch {
+                    return value;
+                }
+            }
             case 'currency':
                 return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(value);
             default:
